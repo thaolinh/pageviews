@@ -364,7 +364,6 @@ var MassViews = function (_mix$with) {
 
     /**
      * Loop through given pages and query the pageviews API for each
-     *   Also updates this.outputData with result
      * @param  {string} project - project such as en.wikipedia.org
      * @param  {Object} pages - as given by the getPagePile promise
      * @return {Deferred} - Promise resolving with data ready to be rendered to view
@@ -374,6 +373,11 @@ var MassViews = function (_mix$with) {
     key: 'getPageViewsData',
     value: function getPageViewsData(project, pages) {
       var _this5 = this;
+
+      if (this.isRequestCached()) {
+        return $.Deferred().resolve(simpleStorage.get(this.getCacheKey()), true // to tell parent function to skip processing, as we're pulling it from cache
+        );
+      }
 
       var startDate = this.daterangepicker.startDate.startOf('day'),
           endDate = this.daterangepicker.endDate.startOf('day');
@@ -428,8 +432,6 @@ var MassViews = function (_mix$with) {
           _this5.updateProgressBar(++count, totalRequestCount);
 
           if (count === totalRequestCount) {
-            dfd.resolve(pageViewsData);
-
             if (failedPages.length) {
               _this5.writeMessage($.i18n('api-error-timeout', '<ul>' + failedPages.map(function (failedPage) {
                 return '<li>' + _this5.getPageLink(failedPage, project) + '</li>';
@@ -437,22 +439,20 @@ var MassViews = function (_mix$with) {
             }
 
             /**
-             * if there were no failures, assume the resource is now cached by the server
-             *   and save this assumption to our own cache so we don't throttle the same requests
+             * If there were no failures, cache the result as some datasets can be very large.
+             * There is server cache but there is also processing time that local caching can eliminate
              */
             if (!hadFailure) {
-              simpleStorage.set(_this5.getCacheKey(), true, { TTL: 600000 });
+              // 10 minutes, TTL is milliseconds
+              simpleStorage.set(_this5.getCacheKey(), pageViewsData, { TTL: 600000 });
             }
+
+            dfd.resolve(pageViewsData);
           }
         });
       };
 
-      /**
-       * We don't want to throttle requests for cached resources. However in our case,
-       *   we're unable to check response headers to see if the resource was cached,
-       *   so we use simpleStorage to keep track of what the user has recently queried.
-       */
-      var requestFn = this.isRequestCached() ? makeRequest : this.rateLimit(makeRequest, this.config.apiThrottle, this);
+      var requestFn = this.rateLimit(makeRequest, this.config.apiThrottle, this);
 
       pages.forEach(function (page, index) {
         requestFn(page);
@@ -792,9 +792,7 @@ var MassViews = function (_mix$with) {
           $('.output-title').text(label).prop('href', _this9.getPileURL(pileData.id));
           $('.output-params').html('\n          ' + $(_this9.config.dateRangeSelector).val() + '\n          &mdash;\n          <a href="https://' + _this9.sourceProject.escape() + '" target="_blank">' + _this9.sourceProject.replace(/.org$/, '').escape() + '</a>\n          ');
 
-          _this9.buildMotherDataset(label, _this9.getPileLink(pileData.id), pageViewsData);
-
-          cb();
+          cb(label, _this9.getPileLink(pileData.id), pageViewsData);
         });
       }).fail(function (error) {
         _this9.setState('initial');
@@ -863,7 +861,7 @@ var MassViews = function (_mix$with) {
           $('.output-params').html($(_this10.config.dateRangeSelector).val());
           _this10.buildMotherDataset(category, categoryLink, pageViewsData);
 
-          cb();
+          cb(category, categoryLink, pageViewsData);
         });
       }).fail(function (data) {
         _this10.setState('initial');
@@ -1178,7 +1176,15 @@ var MassViews = function (_mix$with) {
 
       this.setState('processing');
 
-      var cb = function cb() {
+      if (this.isRequestCached()) {
+        this.updateProgressBar(1, 1);
+        $('.progress-counter').text('Loading from cache...');
+      }
+
+      var cb = function cb(label, link, datasets) {
+        if (!_this15.isRequestCached()) {
+          _this15.buildMotherDataset(label, link, datasets);
+        }
         _this15.setInitialChartType();
         _this15.renderData();
       };
@@ -2537,13 +2543,18 @@ var ListHelpers = function ListHelpers(superclass) {
     }, {
       key: 'updateProgressBar',
       value: function updateProgressBar(value, total) {
-        if (total) {
-          var percentage = value / total * 100;
-          $('.progress-bar').css('width', percentage.toFixed(2) + '%');
-          $('.progress-counter').text($.i18n('processing-page', value, total));
-        } else {
+        if (!total) {
           $('.progress-bar').css('width', '0%');
-          $('.progress-counter').text('');
+          return $('.progress-counter').text('');
+        }
+
+        var percentage = value / total * 100;
+        $('.progress-bar').css('width', percentage.toFixed(2) + '%');
+
+        if (value === total) {
+          $('.progress-counter').text('Building dataset...');
+        } else {
+          $('.progress-counter').text($.i18n('processing-page', value, total));
         }
       }
     }]);

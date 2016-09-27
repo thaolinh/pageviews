@@ -241,12 +241,18 @@ class MassViews extends mix(Pv).with(ChartHelpers, ListHelpers) {
 
   /**
    * Loop through given pages and query the pageviews API for each
-   *   Also updates this.outputData with result
    * @param  {string} project - project such as en.wikipedia.org
    * @param  {Object} pages - as given by the getPagePile promise
    * @return {Deferred} - Promise resolving with data ready to be rendered to view
    */
   getPageViewsData(project, pages) {
+    if (this.isRequestCached()) {
+      return $.Deferred().resolve(
+        simpleStorage.get(this.getCacheKey()),
+        true // to tell parent function to skip processing, as we're pulling it from cache
+      );
+    }
+
     const startDate = this.daterangepicker.startDate.startOf('day'),
       endDate = this.daterangepicker.endDate.startOf('day');
 
@@ -298,8 +304,6 @@ class MassViews extends mix(Pv).with(ChartHelpers, ListHelpers) {
         this.updateProgressBar(++count, totalRequestCount);
 
         if (count === totalRequestCount) {
-          dfd.resolve(pageViewsData);
-
           if (failedPages.length) {
             this.writeMessage($.i18n(
               'api-error-timeout',
@@ -310,22 +314,20 @@ class MassViews extends mix(Pv).with(ChartHelpers, ListHelpers) {
           }
 
           /**
-           * if there were no failures, assume the resource is now cached by the server
-           *   and save this assumption to our own cache so we don't throttle the same requests
+           * If there were no failures, cache the result as some datasets can be very large.
+           * There is server cache but there is also processing time that local caching can eliminate
            */
           if (!hadFailure) {
-            simpleStorage.set(this.getCacheKey(), true, {TTL: 600000});
+            // 10 minutes, TTL is milliseconds
+            simpleStorage.set(this.getCacheKey(), pageViewsData, {TTL: 600000});
           }
+
+          dfd.resolve(pageViewsData);
         }
       });
     };
 
-    /**
-     * We don't want to throttle requests for cached resources. However in our case,
-     *   we're unable to check response headers to see if the resource was cached,
-     *   so we use simpleStorage to keep track of what the user has recently queried.
-     */
-    const requestFn = this.isRequestCached() ? makeRequest : this.rateLimit(makeRequest, this.config.apiThrottle, this);
+    const requestFn = this.rateLimit(makeRequest, this.config.apiThrottle, this);
 
     pages.forEach((page, index) => {
       requestFn(page);
@@ -639,9 +641,7 @@ class MassViews extends mix(Pv).with(ChartHelpers, ListHelpers) {
           `
         );
 
-        this.buildMotherDataset(label, this.getPileLink(pileData.id), pageViewsData);
-
-        cb();
+        cb(label, this.getPileLink(pileData.id), pageViewsData);
       });
     }).fail(error => {
       this.setState('initial');
@@ -710,7 +710,7 @@ class MassViews extends mix(Pv).with(ChartHelpers, ListHelpers) {
         $('.output-params').html($(this.config.dateRangeSelector).val());
         this.buildMotherDataset(category, categoryLink, pageViewsData);
 
-        cb();
+        cb(category, categoryLink, pageViewsData);
       });
     }).fail(data => {
       this.setState('initial');
@@ -1015,7 +1015,15 @@ class MassViews extends mix(Pv).with(ChartHelpers, ListHelpers) {
   processInput() {
     this.setState('processing');
 
-    const cb = () => {
+    if (this.isRequestCached()) {
+      this.updateProgressBar(1, 1);
+      $('.progress-counter').text('Loading from cache...');
+    }
+
+    const cb = (label, link, datasets) => {
+      if (!this.isRequestCached()) {
+        this.buildMotherDataset(label, link, datasets);
+      }
       this.setInitialChartType();
       this.renderData();
     };
