@@ -7,88 +7,114 @@
     - include '_head.php'
     %title= $I18N->msg( 'title' )
   %body(class="#{$rtl} #{$currentApp}")
-    %div.container
-      %header.col-lg-12.text-center
-        %h4
-          %strong
-            = $I18N->msg( 'title' )
-          %small.app-description
-            = $I18N->msg( 'pageviews-description' )
+    %nav
+      %span.pull-right.nav-buttons
+        %button.btn.btn-default.btn-sm.btn-settings.js-test-settings(data-target="#settings-modal" data-toggle="modal")
+          %span.glyphicon.glyphicon-wrench
+          = $I18N->msg( 'settings' )
 
-      %main.col-lg-10.col-lg-offset-1
-        / Site notice
-        %div.text-center.site-notice-wrapper
-          %div.site-notice
-            - include "_browser_check.php"
+        %a.btn.btn-default.btn-sm.btn-faq(href="/pageviews/faq")
+          %span.glyphicon.glyphicon-question-sign
+          = $I18N->msg( 'faq' )
 
-        %div.row.aqs-row.options
-          / Date range selector
-          %div.col-lg-5.col-sm-5
-            %label(for="range-input")
-              = $I18N->msg( 'dates' )
-            %span.date-latest
-              :php
-                $days = array(10, 20, 30, 60, 90);
-                $dayLinks = '';
-                foreach ( $days as $day ) {
-                  $dayLinks .= " <a data-value='{$day}' href='#'>{$day}</a>";
-                }
-              = $I18N->msg( 'latest-days', array( 'variables' => array( $dayLinks ) ) )
-            %input.form-control.aqs-date-range-selector#range-input
+        %span.btn-group.dropdown.lang-group.pull-right
+          %button.btn.btn-default.btn-sm.dropdown-toggle(type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
+            = $currentLang
+            %span.caret
+          %ul.dropdown-menu.dropdown-menu-right
+            %li
+              %a(href="https://translatewiki.net/w/i.php?title=Special:MessageGroupStats&group=out-pageviews")
+                = $I18N->msg( 'help-translate' )
+            %li.divider(role="separator")
+            - foreach (array_unique($langs) as $lang => $langName)
+              %li
+                %a.lang-link(href="#" data-lang="#{$lang}")= $langName
 
-          / Project selector
-          %div.col-lg-3.col-sm-3
-            %label(for="project-input")
-              = $I18N->msg( 'project' )
-            %input.form-control.aqs-project-input#project-input(placeholder="en.wikipedia.org")
+      %ul.interapp-links.nav.nav-tabs
+        - $apps = [ 'pageviews', 'langviews', 'topviews', 'siteviews', 'massviews', 'redirectviews' ]
+        - foreach( $apps as $app )
+          - $i18nName = $app === 'pageviews' ? '' : $app . '-'
 
-          / Advanced options
-          %div.col-lg-2.col-sm-2
-            %label(for="platform-select")
-              = $I18N->msg( 'platform' )
-            %select.form-control#platform-select
-              %option(value="all-access")
-                = $I18N->msg( 'all' )
-              %option(value="desktop")
-                = $I18N->msg( 'desktop' )
-              %option(value="mobile-app")
-                = $I18N->msg( 'mobile-app' )
-              %option(value="mobile-web")
-                = $I18N->msg( 'mobile-web' )
+          - if ( $app === $currentApp )
+            %li.active(role="presentation")
+              %a.interapp-link(class="interapp-link--#{$app}" href="/#{$app}")
+                = $I18N->msg( $app )
+          - else
+            %li(role="presentation")
+              %a.interapp-link(class="interapp-link--#{$app}" href="/#{$app}")
+                = $I18N->msg( $app )
 
-          %div.col-lg-2.col-sm-2
-            %label(for="agent-select")
-              = $I18N->msg( 'agent' )
-              %a.help-link(href="/pageviews/faq#agents")
-                %span.glyphicon.glyphicon-question-sign
-            %select.form-control#agent-select
-              %option(value="all-agents")
-                = $I18N->msg( 'all' )
-              %option(selected="selected" value="user")
-                = $I18N->msg( 'user' )
-              %option(value="spider")
-                = $I18N->msg( 'spider' )
-              %option(value="bot")
-                = $I18N->msg( 'bot' )
+    %header.site-header
+      %h4.text-center
+        %strong
+          = $I18N->msg( 'title' )
+        %small.app-description
+          = $I18N->msg( 'pageviews-description' )
 
-        / Article selector
-        %div.row.aqs-row
-          %div.col-lg-12
-            %label(for="article-input")
-              = $I18N->msg( 'pages' )
-            %select.aqs-select2-selector.col-lg-12.invisible#article-input(multiple="multiple")
+    %aside.col-lg-2.page-selector
+      %header.text-center
+        %h4 Options
+      %div.page-selector--container
+        %div
+          %label(for="range-input")
+            = $I18N->msg( 'dates' )
+          %input.form-control.aqs-date-range-selector#range-input
+        %div
+          %label(for="project-input")
+            = $I18N->msg( 'project' )
+          %input.form-control.aqs-project-input#project-input(placeholder="en.wikipedia.org")
+        %div
+          %label(for="platform-select")
+            = $I18N->msg( 'platform' )
+          %select.form-control#platform-select
+            %option(value="all-access")
+              = $I18N->msg( 'all' )
+            %option(value="desktop")
+              = $I18N->msg( 'desktop' )
+            %option(value="mobile-app")
+              = $I18N->msg( 'mobile-app' )
+            %option(value="mobile-web")
+              = $I18N->msg( 'mobile-web' )
+        %div
+          %label(for="agent-select")
+            = $I18N->msg( 'agent' )
+            %a.help-link(href="/pageviews/faq#agents")
+              %span.glyphicon.glyphicon-question-sign
+          %select.form-control#agent-select
+            %option(value="all-agents")
+              = $I18N->msg( 'all' )
+            %option(selected="selected" value="user")
+              = $I18N->msg( 'user' )
+            %option(value="spider")
+              = $I18N->msg( 'spider' )
+            %option(value="bot")
+              = $I18N->msg( 'bot' )
 
-        - include "_data_links.php"
+        %div
+          %label(for="article-input")
+            = $I18N->msg( 'pages' )
+          %select.aqs-select2-selector.col-lg-12.invisible#article-input(multiple="multiple")
 
-        / Chart
-        %div.chart-container
-          %canvas.aqs-chart
+    %main.col-lg-8
+      / Site notice
+      %div.text-center.site-notice-wrapper
+        %div.site-notice
+          - include "_browser_check.php"
 
-        %div.message-container.col-lg-12
+      - include "_data_links.php"
 
-        / Legend
-        %div.col-lg-12.tm.clearfix#chart-legend
+      / Chart
+      %div.chart-container
+        %canvas.aqs-chart
 
-        - include "_footer.php"
+      %div.message-container.col-lg-12
 
-      - include "_modals.php"
+    %aside.col-lg-2.summary-column
+      %header.text-center
+        %h4 Summary
+      %div.summary-column--container
+        %div.col-lg-12.clearfix#chart-legend
+
+    - include "_footer.php"
+
+    - include "_modals.php"

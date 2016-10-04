@@ -838,22 +838,24 @@ class Pv extends PvConfig {
   }
 
   /**
-   * Make request to API in order to get normalized page names. E.g. masculine versus feminine namespaces on dewiki
-   *
+   * Get basic info on given pages, including the normalized page names.
+   * E.g. masculine versus feminine namespaces on dewiki
    * @param {array} pages - array of page names
    * @returns {Deferred} promise with data fetched from API
    */
-  normalizePageNames(pages) {
+  getPageInfo(pages) {
     let dfd = $.Deferred();
 
     return $.ajax({
-      url: `https://${this.project}.org/w/api.php?action=query&prop=info&format=json&titles=${pages.join('|')}`,
+      url: `https://${this.project}.org/w/api.php?action=query&prop=info&inprop=protection|watchers` +
+        `&formatversion=2&format=json&titles=${pages.join('|')}`,
       dataType: 'jsonp'
     }).then(data => {
-      if (data.query.normalized) {
-        pages = this.mapNormalizedPageNames(pages, data.query.normalized);
-      }
-      return dfd.resolve(pages);
+      let pageData = {};
+      data.query.pages.forEach(page => {
+        pageData[page.title] = page;
+      });
+      return dfd.resolve(pageData);
     });
   }
 

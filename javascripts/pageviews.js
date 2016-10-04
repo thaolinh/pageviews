@@ -18,7 +18,7 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
     super(config);
     this.app = 'pageviews';
 
-    this.normalized = false; /** let's us know if the page names have been normalized via the API yet */
+    this.pageInfo = false; /** let's us know if we've gotten the page info from API yet */
     this.specialRange = null;
 
     /**
@@ -113,18 +113,19 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
     /**
      * Normalizes the page names then sets the Select2 defaults,
      *   which triggers the Select2 listener and renders the chart
-     * @param {Array} pages - pages to pass to Massviews
+     * @param {Array} pages - pages to query
      * @return {null} nothing
      */
-    const normalizeAndSetDefaults = pages => {
-      if (this.normalized) {
+    const getPageInfoAndSetDefaults = pages => {
+      if (this.pageInfo) {
         pages = this.underscorePageNames(pages);
         this.setSelect2Defaults(pages);
       } else {
-        this.normalizePageNames(pages).then(data => {
-          this.normalized = true;
-          pages = data;
-          this.setSelect2Defaults(this.underscorePageNames(pages));
+        this.getPageInfo(pages).then(data => {
+          this.pageInfo = data;
+          this.setSelect2Defaults(
+            this.underscorePageNames(Object.keys(data))
+          );
         });
       }
     };
@@ -135,7 +136,7 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
       if (this.project === 'en.wikipedia') {
         params.pages = ['Cat', 'Dog'];
         this.setInitialChartType(params.pages.length);
-        normalizeAndSetDefaults(params.pages);
+        getPageInfoAndSetDefaults(params.pages);
       } else {
         // leave Select2 empty and put focus on it so they can type in pages
         this.focusSelect2();
@@ -146,10 +147,10 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
     } else if (params.pages.length > 10) {
       // If a PagePile is successfully created we are redirected to Massviews and the promise is never resolved,
       //   otherwise we just take the first 10 and process as we would normally
-      this.massviewsRedirectWithPagePile(params.pages).then(normalizeAndSetDefaults);
+      this.massviewsRedirectWithPagePile(params.pages).then(getPageInfoAndSetDefaults);
     } else {
       this.setInitialChartType(params.pages.length);
-      normalizeAndSetDefaults(params.pages);
+      getPageInfoAndSetDefaults(params.pages);
     }
   }
 

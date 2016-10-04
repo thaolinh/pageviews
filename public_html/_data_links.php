@@ -2,8 +2,6 @@
   <div class="col-lg-12">
     <button class="btn btn-default btn-sm btn-chart-type chart-specific js-test-change-chart" data-target="#chart-type-modal" data-toggle="modal"><span class="glyphicon glyphicon-th"></span>
     <?php echo $I18N->msg( 'change-chart' ); ?></button>
-    <button class="btn btn-default btn-sm btn-settings js-test-settings" data-target="#settings-modal" data-toggle="modal"><span class="glyphicon glyphicon-wrench"></span>
-    <?php echo $I18N->msg( 'settings' ); ?></button>
     <a class="btn btn-default btn-sm permalink" href=""><span class="glyphicon glyphicon-link"></span>
     <?php echo $I18N->msg( 'permalink' ); ?></a>
     <span class="btn-group dropdown download-btn-group">

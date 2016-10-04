@@ -27,22 +27,6 @@
 <footer class="row">
   <div class="col-lg-12">
     <hr>
-    <div class="footer-nav">
-      <?php include "_lang_selector.php"; ?>
-      <div class="interapp-links bm">
-        <?php $apps = array( 'pageviews', 'langviews', 'topviews', 'siteviews', 'massviews', 'redirectviews' ); ?>
-        <?php $appLinks = array(); ?>
-        <?php foreach( $apps as $app ) { ?>
-          <?php $i18nName = $app === 'pageviews' ? '' : $app . '-'; ?>
-          <?php if ( $app === $currentApp ) { ?>
-            <?php $appLinks[] = $I18N->msg( $app ); ?>
-          <?php } else { ?>
-            <?php $appLinks[] = "<a class='interapp-link interapp-link--{$app}' href='/{$app}'>{$I18N->msg( $app )}</a>"; ?>
-          <?php } ?>
-        <?php } ?>
-        <?php echo implode( ' &bullet; ', $appLinks ); ?>
-      </div>
-    </div>
     <span>
       <?php $MusikAnimal = "<a href='https://en.wikipedia.org/wiki/User:MusikAnimal'>MusikAnimal</a>"; ?>
       <?php $Kaldari = "<a href='https://en.wikipedia.org/wiki/User:Kaldari'>Kaldari</a>"; ?>

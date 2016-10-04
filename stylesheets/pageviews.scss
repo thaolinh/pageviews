@@ -3,3 +3,56 @@
 
 @import 'shared';
 @import 'chart_view';
+
+.nav-tabs {
+  .active a {
+    background: transparent !important;
+    border-color: transparent !important;
+  }
+}
+
+.nav-buttons {
+  padding: 6px;
+
+  > * {
+    margin-right: 6px;
+
+    &:last-child {
+      margin: 0;
+    }
+  }
+}
+
+.site-header {
+  margin-top: 0;
+  padding: 10px;
+}
+
+main {
+  border-left: solid 1px $gray;
+  border-right: solid 1px $gray;
+}
+
+.page-selector {
+  .page-selector--container > div {
+    margin-bottom: 10px;
+  }
+}
+
+#chart-legend {
+  padding: 0;
+}
+
+.linear-legend {
+  width: 100%;
+}
+
+.lang-group {
+  float: none !important;
+  position: relative;
+}
+
+.remove-page {
+  color: $link;
+  cursor: pointer;
+}

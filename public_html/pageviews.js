@@ -70,7 +70,7 @@ var PageViews = function (_mix$with) {
 
     _this.app = 'pageviews';
 
-    _this.normalized = false; /** let's us know if the page names have been normalized via the API yet */
+    _this.pageInfo = false; /** let's us know if we've gotten the page info from API yet */
     _this.specialRange = null;
 
     /**
@@ -182,18 +182,17 @@ var PageViews = function (_mix$with) {
       /**
        * Normalizes the page names then sets the Select2 defaults,
        *   which triggers the Select2 listener and renders the chart
-       * @param {Array} pages - pages to pass to Massviews
+       * @param {Array} pages - pages to query
        * @return {null} nothing
        */
-      var normalizeAndSetDefaults = function normalizeAndSetDefaults(pages) {
-        if (_this2.normalized) {
+      var getPageInfoAndSetDefaults = function getPageInfoAndSetDefaults(pages) {
+        if (_this2.pageInfo) {
           pages = _this2.underscorePageNames(pages);
           _this2.setSelect2Defaults(pages);
         } else {
-          _this2.normalizePageNames(pages).then(function (data) {
-            _this2.normalized = true;
-            pages = data;
-            _this2.setSelect2Defaults(_this2.underscorePageNames(pages));
+          _this2.getPageInfo(pages).then(function (data) {
+            _this2.pageInfo = data;
+            _this2.setSelect2Defaults(_this2.underscorePageNames(Object.keys(data)));
           });
         }
       };
@@ -204,7 +203,7 @@ var PageViews = function (_mix$with) {
         if (this.project === 'en.wikipedia') {
           params.pages = ['Cat', 'Dog'];
           this.setInitialChartType(params.pages.length);
-          normalizeAndSetDefaults(params.pages);
+          getPageInfoAndSetDefaults(params.pages);
         } else {
           // leave Select2 empty and put focus on it so they can type in pages
           this.focusSelect2();
@@ -215,10 +214,10 @@ var PageViews = function (_mix$with) {
       } else if (params.pages.length > 10) {
           // If a PagePile is successfully created we are redirected to Massviews and the promise is never resolved,
           //   otherwise we just take the first 10 and process as we would normally
-          this.massviewsRedirectWithPagePile(params.pages).then(normalizeAndSetDefaults);
+          this.massviewsRedirectWithPagePile(params.pages).then(getPageInfoAndSetDefaults);
         } else {
           this.setInitialChartType(params.pages.length);
-          normalizeAndSetDefaults(params.pages);
+          getPageInfoAndSetDefaults(params.pages);
         }
     }
 
@@ -2822,27 +2821,26 @@ var Pv = function (_PvConfig) {
     }
 
     /**
-     * Make request to API in order to get normalized page names. E.g. masculine versus feminine namespaces on dewiki
-     *
+     * Get basic info on given pages, including the normalized page names.
+     * E.g. masculine versus feminine namespaces on dewiki
      * @param {array} pages - array of page names
      * @returns {Deferred} promise with data fetched from API
      */
 
   }, {
-    key: 'normalizePageNames',
-    value: function normalizePageNames(pages) {
-      var _this4 = this;
-
+    key: 'getPageInfo',
+    value: function getPageInfo(pages) {
       var dfd = $.Deferred();
 
       return $.ajax({
-        url: 'https://' + this.project + '.org/w/api.php?action=query&prop=info&format=json&titles=' + pages.join('|'),
+        url: 'https://' + this.project + '.org/w/api.php?action=query&prop=info&inprop=protection|watchers' + ('&formatversion=2&format=json&titles=' + pages.join('|')),
         dataType: 'jsonp'
       }).then(function (data) {
-        if (data.query.normalized) {
-          pages = _this4.mapNormalizedPageNames(pages, data.query.normalized);
-        }
-        return dfd.resolve(pages);
+        var pageData = {};
+        data.query.pages.forEach(function (page) {
+          pageData[page.title] = page;
+        });
+        return dfd.resolve(pageData);
       });
     }
 
@@ -3028,16 +3026,16 @@ var Pv = function (_PvConfig) {
   }, {
     key: 'saveSettings',
     value: function saveSettings() {
-      var _this5 = this;
+      var _this4 = this;
 
       /** track if we're changing to no_autocomplete mode */
       var wasAutocomplete = this.autocomplete === 'no_autocomplete';
 
       $.each($('#settings-modal input'), function (index, el) {
         if (el.type === 'checkbox') {
-          _this5.saveSetting(el.name, el.checked ? 'true' : 'false');
+          _this4.saveSetting(el.name, el.checked ? 'true' : 'false');
         } else if (el.checked) {
-          _this5.saveSetting(el.name, el.value);
+          _this4.saveSetting(el.name, el.value);
         }
       });
 
@@ -3075,11 +3073,11 @@ var Pv = function (_PvConfig) {
   }, {
     key: 'setSelect2Defaults',
     value: function setSelect2Defaults(items) {
-      var _this6 = this;
+      var _this5 = this;
 
       items.forEach(function (item) {
         var escapedText = $('<div>').text(item).html();
-        $('<option>' + escapedText + '</option>').appendTo(_this6.config.select2Input);
+        $('<option>' + escapedText + '</option>').appendTo(_this5.config.select2Input);
       });
       $(this.config.select2Input).select2('val', items);
       $(this.config.select2Input).select2('close');
@@ -3149,7 +3147,7 @@ var Pv = function (_PvConfig) {
   }, {
     key: 'setupSelect2Colors',
     value: function setupSelect2Colors() {
-      var _this7 = this;
+      var _this6 = this;
 
       /** first delete old stylesheet, if present */
       if (this.colorsStyleEl) this.colorsStyleEl.remove();
@@ -3161,7 +3159,7 @@ var Pv = function (_PvConfig) {
 
       /** add color rules */
       this.config.colors.forEach(function (color, index) {
-        _this7.colorsStyleEl.sheet.insertRule('.select2-selection__choice:nth-of-type(' + (index + 1) + ') { background: ' + color + ' !important }', 0);
+        _this6.colorsStyleEl.sheet.insertRule('.select2-selection__choice:nth-of-type(' + (index + 1) + ') { background: ' + color + ' !important }', 0);
       });
 
       return this.colorsStyleEl.sheet;
@@ -3176,7 +3174,7 @@ var Pv = function (_PvConfig) {
   }, {
     key: 'setupListeners',
     value: function setupListeners() {
-      var _this8 = this;
+      var _this7 = this;
 
       /** prevent browser's default behaviour for any link with href="#" */
       $("a[href='#']").on('click', function (e) {
@@ -3192,7 +3190,7 @@ var Pv = function (_PvConfig) {
         this.dataset.value = this.value;
       });
       $(this.config.projectInput).on('change', function (e) {
-        return _this8.validateProject(e);
+        return _this7.validateProject(e);
       });
     }
 
@@ -3220,7 +3218,7 @@ var Pv = function (_PvConfig) {
   }, {
     key: 'setupDateRangeSelector',
     value: function setupDateRangeSelector() {
-      var _this9 = this;
+      var _this8 = this;
 
       var dateRangeSelector = $(this.config.dateRangeSelector);
 
@@ -3232,7 +3230,7 @@ var Pv = function (_PvConfig) {
       var ranges = {};
       Object.keys(this.config.specialRanges).forEach(function (key) {
         if (key === 'latest') return; // this is a function, not meant to be in the list of special ranges
-        ranges[$.i18n(key)] = _this9.config.specialRanges[key];
+        ranges[$.i18n(key)] = _this8.config.specialRanges[key];
       });
 
       var datepickerOptions = {
@@ -3266,31 +3264,31 @@ var Pv = function (_PvConfig) {
        */
       $('.daterangepicker .ranges li').on('click', function (e) {
         var index = $('.daterangepicker .ranges li').index(e.target),
-            container = _this9.daterangepicker.container,
+            container = _this8.daterangepicker.container,
             inputs = container.find('.daterangepicker_input input');
-        _this9.specialRange = {
-          range: Object.keys(_this9.config.specialRanges)[index],
+        _this8.specialRange = {
+          range: Object.keys(_this8.config.specialRanges)[index],
           value: inputs[0].value + ' - ' + inputs[1].value
         };
       });
 
       $(this.config.dateRangeSelector).on('apply.daterangepicker', function (e, action) {
         if (action.chosenLabel === $.i18n('custom-range')) {
-          _this9.specialRange = null;
+          _this8.specialRange = null;
 
           /** force events to re-fire since apply.daterangepicker occurs before 'change' event */
-          _this9.daterangepicker.updateElement();
+          _this8.daterangepicker.updateElement();
         }
       });
     }
   }, {
     key: 'showFatalErrors',
     value: function showFatalErrors(errors) {
-      var _this10 = this;
+      var _this9 = this;
 
       this.clearMessages();
       errors.forEach(function (error) {
-        _this10.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>: <code>' + error + '</code>');
+        _this9.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>: <code>' + error + '</code>');
       });
 
       if (this.debug) {
@@ -3306,12 +3304,12 @@ var Pv = function (_PvConfig) {
           }
         }).done(function (data) {
           if (data && data.result && data.result.objectName) {
-            _this10.writeMessage($.i18n('error-please-report', _this10.getBugReportURL(data.result.objectName)));
+            _this9.writeMessage($.i18n('error-please-report', _this9.getBugReportURL(data.result.objectName)));
           } else {
-            _this10.writeMessage($.i18n('error-please-report', _this10.getBugReportURL()));
+            _this9.writeMessage($.i18n('error-please-report', _this9.getBugReportURL()));
           }
         }).fail(function () {
-          _this10.writeMessage($.i18n('error-please-report', _this10.getBugReportURL()));
+          _this9.writeMessage($.i18n('error-please-report', _this9.getBugReportURL()));
         });
       }
     }
@@ -3349,14 +3347,14 @@ var Pv = function (_PvConfig) {
   }, {
     key: 'startSpinny',
     value: function startSpinny() {
-      var _this11 = this;
+      var _this10 = this;
 
       $('.chart-container').addClass('loading');
       clearTimeout(this.timeout);
 
       this.timeout = setTimeout(function (err) {
-        _this11.resetView();
-        _this11.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>:\n        ' + $.i18n('error-timed-out') + '\n        ' + $.i18n('error-please-report', _this11.getBugReportURL()) + '\n      ', true);
+        _this10.resetView();
+        _this10.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>:\n        ' + $.i18n('error-timed-out') + '\n        ' + $.i18n('error-please-report', _this10.getBugReportURL()) + '\n      ', true);
       }, 20 * 1000);
     }
 
@@ -3395,15 +3393,15 @@ var Pv = function (_PvConfig) {
   }, {
     key: 'updateInterAppLinks',
     value: function updateInterAppLinks() {
-      var _this12 = this;
+      var _this11 = this;
 
       $('.interapp-link').each(function (i, link) {
         var url = link.href.split('?')[0];
 
         if (link.classList.contains('interapp-link--siteviews')) {
-          link.href = url + '?sites=' + _this12.project.escape() + '.org';
+          link.href = url + '?sites=' + _this11.project.escape() + '.org';
         } else {
-          link.href = url + '?project=' + _this12.project.escape() + '.org';
+          link.href = url + '?project=' + _this11.project.escape() + '.org';
         }
       });
     }
@@ -3418,20 +3416,20 @@ var Pv = function (_PvConfig) {
   }, {
     key: 'validateParams',
     value: function validateParams(params) {
-      var _this13 = this;
+      var _this12 = this;
 
       this.config.validateParams.forEach(function (paramKey) {
         if (paramKey === 'project' && params.project) {
           params.project = params.project.replace(/^www\./, '');
         }
 
-        var defaultValue = _this13.config.defaults[paramKey],
+        var defaultValue = _this12.config.defaults[paramKey],
             paramValue = params[paramKey];
 
-        if (defaultValue && !_this13.config.validParams[paramKey].includes(paramValue)) {
+        if (defaultValue && !_this12.config.validParams[paramKey].includes(paramValue)) {
           // only throw error if they tried to provide an invalid value
           if (!!paramValue) {
-            _this13.addInvalidParamNotice(paramKey);
+            _this12.addInvalidParamNotice(paramKey);
           }
 
           params[paramKey] = defaultValue;
@@ -4769,12 +4767,13 @@ var templates = {
       var total = datasets.reduce(function (a, b) {
         return a + b.sum;
       }, 0);
-      markup = '<div class="linear-legend--totals">\n        <strong>' + $.i18n('totals') + ':</strong>\n        ' + scope.formatNumber(total) + ' (' + scope.formatNumber(Math.round(total / scope.numDaysInRange())) + '/' + $.i18n('day') + ')\n      </div>';
+      markup = '<div class="linear-legend--totals">\n        <span class=\'pull-right\'>\n          ' + scope.formatNumber(total) + ' (' + scope.formatNumber(Math.round(total / scope.numDaysInRange())) + '/' + $.i18n('day') + ')\n        </span>\n        <strong>' + $.i18n('totals') + ':</strong>\n      </div>';
     }
     markup += '<div class="linear-legends">';
 
     for (var i = 0; i < datasets.length; i++) {
-      markup += '\n        <span class="linear-legend">\n          <div class="linear-legend--label" style="background-color:' + scope.rgba(datasets[i].color, 0.8) + '">\n            <a href="' + scope.getPageURL(datasets[i].label) + '" target="_blank">' + datasets[i].label + '</a>\n          </div>\n          <div class="linear-legend--counts">\n            ' + scope.formatNumber(datasets[i].sum) + ' (' + scope.formatNumber(datasets[i].average) + '/' + $.i18n('day') + ')\n          </div>\n          <div class="linear-legend--links">\n            <a href="' + scope.getLangviewsURL(datasets[i].label) + '" target="_blank">' + $.i18n('all-languages') + '</a>\n            &bullet;\n            <a href="' + scope.getRedirectviewsURL(datasets[i].label) + '" target="_blank">' + $.i18n('redirects') + '</a>\n            &bullet;\n            <a href="' + scope.getExpandedPageURL(datasets[i].label) + '&action=history" target="_blank">' + $.i18n('history') + '</a>\n            &bullet;\n            <a href="' + scope.getExpandedPageURL(datasets[i].label) + '&action=info" target="_blank">' + $.i18n('info') + '</a>\n          </div>\n        </span>\n      ';
+      var pageInfo = scope.pageInfo[datasets[i].label];
+      markup += '\n        <span class="linear-legend">\n          <div class="linear-legend--label" style="background-color:' + scope.rgba(datasets[i].color, 0.8) + '">\n            <span class=\'pull-right remove-page glyphicon glyphicon-remove\' data-article=' + pageInfo.title + ' title=\'Remove page\'></span>\n            <a href="' + scope.getPageURL(datasets[i].label) + '" target="_blank">' + datasets[i].label + '</a>\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(datasets[i].sum) + '\n            </span>\n            Pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(datasets[i].average) + '/' + $.i18n('day') + '\n            </span>\n            Avg pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(pageInfo.length) + '\n            </span>\n            Size:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(pageInfo.watchers) + '\n            </span>\n            Watchers:\n          </div>\n          <div class="linear-legend--links">\n            <a href="' + scope.getLangviewsURL(datasets[i].label) + '" target="_blank">' + $.i18n('all-languages') + '</a>\n            &bullet;\n            <a href="' + scope.getRedirectviewsURL(datasets[i].label) + '" target="_blank">' + $.i18n('redirects') + '</a>\n          </div>\n        </span>\n      ';
     }
     return markup += '</div>';
   },

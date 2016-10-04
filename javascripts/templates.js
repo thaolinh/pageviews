@@ -32,29 +32,50 @@ const templates = {
     if (datasets.length > 1) {
       const total = datasets.reduce((a,b) => a + b.sum, 0);
       markup = `<div class="linear-legend--totals">
+        <span class='pull-right'>
+          ${scope.formatNumber(total)} (${scope.formatNumber(Math.round(total / scope.numDaysInRange()))}/${$.i18n('day')})
+        </span>
         <strong>${$.i18n('totals')}:</strong>
-        ${scope.formatNumber(total)} (${scope.formatNumber(Math.round(total / scope.numDaysInRange()))}/${$.i18n('day')})
       </div>`;
     }
     markup += '<div class="linear-legends">';
 
     for (let i = 0; i < datasets.length; i++) {
+      const pageInfo = scope.pageInfo[datasets[i].label];
       markup += `
         <span class="linear-legend">
           <div class="linear-legend--label" style="background-color:${scope.rgba(datasets[i].color, 0.8)}">
+            <span class='pull-right remove-page glyphicon glyphicon-remove' data-article=${pageInfo.title} title='Remove page'></span>
             <a href="${scope.getPageURL(datasets[i].label)}" target="_blank">${datasets[i].label}</a>
           </div>
           <div class="linear-legend--counts">
-            ${scope.formatNumber(datasets[i].sum)} (${scope.formatNumber(datasets[i].average)}/${$.i18n('day')})
+            <span class='pull-right'>
+              ${scope.formatNumber(datasets[i].sum)}
+            </span>
+            Pageviews:
+          </div>
+          <div class="linear-legend--counts">
+            <span class='pull-right'>
+              ${scope.formatNumber(datasets[i].average)}/${$.i18n('day')}
+            </span>
+            Avg pageviews:
+          </div>
+          <div class="linear-legend--counts">
+            <span class='pull-right'>
+              ${scope.formatNumber(pageInfo.length)}
+            </span>
+            Size:
+          </div>
+          <div class="linear-legend--counts">
+            <span class='pull-right'>
+              ${scope.formatNumber(pageInfo.watchers)}
+            </span>
+            Watchers:
           </div>
           <div class="linear-legend--links">
             <a href="${scope.getLangviewsURL(datasets[i].label)}" target="_blank">${$.i18n('all-languages')}</a>
             &bullet;
             <a href="${scope.getRedirectviewsURL(datasets[i].label)}" target="_blank">${$.i18n('redirects')}</a>
-            &bullet;
-            <a href="${scope.getExpandedPageURL(datasets[i].label)}&action=history" target="_blank">${$.i18n('history')}</a>
-            &bullet;
-            <a href="${scope.getExpandedPageURL(datasets[i].label)}&action=info" target="_blank">${$.i18n('info')}</a>
           </div>
         </span>
       `;
