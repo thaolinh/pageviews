@@ -7,91 +7,85 @@
     - include '../_head.php'
     %title= $I18N->msg( 'siteviews-title' )
   %body(class="#{$rtl} #{$currentApp}")
-    %div.container
-      %header.col-lg-10.col-lg-offset-1.text-center
-        %h4
-          %strong
-            = $I18N->msg( 'siteviews-title' )
-          %small.app-description
-            = $I18N->msg( 'siteviews-description' )
+    - include '../_header.php'
 
-      %main.col-lg-10.col-lg-offset-1
-        / Site notice
-        %div.text-center.site-notice-wrapper
-          %div.site-notice
-            - include "../_browser_check.php"
+    %main.col-lg-8.col-lg-offset-2
+      / Site notice
+      %div.text-center.site-notice-wrapper
+        %div.site-notice
+          - include "../_browser_check.php"
 
-        %div.row.aqs-row.options
-          / Date range selector
-          %div.col-lg-5.col-sm-5
-            %label(for="range-input")
-              = $I18N->msg( 'dates' )
-            %span.date-latest
-              :php
-                $days = array(10, 20, 30, 60, 90);
-                $dayLinks = '';
-                foreach ( $days as $day ) {
-                  $dayLinks .= " <a data-value='{$day}' href='#'>{$day}</a>";
-                }
-              = $I18N->msg( 'latest-days', array( 'variables' => array( $dayLinks ) ) )
-            %input.form-control.aqs-date-range-selector#range-input
+      %div.row.aqs-row.options
+        / Date range selector
+        %div.col-lg-5.col-sm-5
+          %label(for="range-input")
+            = $I18N->msg( 'dates' )
+          %span.date-latest
+            :php
+              $days = array(10, 20, 30, 60, 90);
+              $dayLinks = '';
+              foreach ( $days as $day ) {
+                $dayLinks .= " <a data-value='{$day}' href='#'>{$day}</a>";
+              }
+            = $I18N->msg( 'latest-days', array( 'variables' => array( $dayLinks ) ) )
+          %input.form-control.aqs-date-range-selector#range-input
 
-          / Advanced options
-          %div.col-lg-3.col-sm-3
-            %label(for="data-source-select")
-              = $I18N->msg( 'metric' )
-            %select.form-control#data-source-select
-              %option(value="pageviews")
-                = $I18N->msg( 'pageviews' )
-              %option(value="unique-devices")
-                = $I18N->msg( 'unique-devices' )
+        / Advanced options
+        %div.col-lg-3.col-sm-3
+          %label(for="data-source-select")
+            = $I18N->msg( 'metric' )
+          %select.form-control#data-source-select
+            %option(value="pageviews")
+              = $I18N->msg( 'pageviews' )
+            %option(value="unique-devices")
+              = $I18N->msg( 'unique-devices' )
 
-          %div.col-lg-2.col-sm-2
-            %label(for="platform-select")
-              = $I18N->msg( 'platform' )
-            %select.form-control#platform-select
-              %option(value="all-access" data-value="all-access" data-ud-value="all-sites")
-                = $I18N->msg( 'all' )
-              %option(value="desktop" data-value="desktop" data-ud-value="desktop-site")
-                = $I18N->msg( 'desktop' )
-              %option.platform-select--mobile-app(value="mobile-app")
-                = $I18N->msg( 'mobile-app' )
-              %option.platform-select--mobile-web(value="mobile-web")
-                = $I18N->msg( 'mobile-web' )
-              %option.platform-select--mobile.none(data-ud-value="mobile-site")
-                = $I18N->msg( 'mobile' )
+        %div.col-lg-2.col-sm-2
+          %label(for="platform-select")
+            = $I18N->msg( 'platform' )
+          %select.form-control#platform-select
+            %option(value="all-access" data-value="all-access" data-ud-value="all-sites")
+              = $I18N->msg( 'all' )
+            %option(value="desktop" data-value="desktop" data-ud-value="desktop-site")
+              = $I18N->msg( 'desktop' )
+            %option.platform-select--mobile-app(value="mobile-app")
+              = $I18N->msg( 'mobile-app' )
+            %option.platform-select--mobile-web(value="mobile-web")
+              = $I18N->msg( 'mobile-web' )
+            %option.platform-select--mobile.none(data-ud-value="mobile-site")
+              = $I18N->msg( 'mobile' )
 
-          %div.col-lg-2.col-sm-2
-            %label(for="agent-select")
-              = $I18N->msg( 'agent' )
-              %a.help-link(href="/siteviews/faq#agents")
-                %span.glyphicon.glyphicon-question-sign
-            %select.form-control#agent-select
-              %option(value="all-agents")
-                = $I18N->msg( 'all' )
-              %option(selected="selected" value="user")
-                = $I18N->msg( 'user' )
-              %option(value="spider")
-                = $I18N->msg( 'spider' )
+        %div.col-lg-2.col-sm-2
+          %label(for="agent-select")
+            = $I18N->msg( 'agent' )
+            %a.help-link(href="/siteviews/faq#agents")
+              %span.glyphicon.glyphicon-question-sign
+          %select.form-control#agent-select
+            %option(value="all-agents")
+              = $I18N->msg( 'all' )
+            %option(selected="selected" value="user")
+              = $I18N->msg( 'user' )
+            %option(value="spider")
+              = $I18N->msg( 'spider' )
 
-        / Site selector
-        %div.row.aqs-row
-          %div.col-lg-12
-            %label(for="site-input")
-              = $I18N->msg( 'projects' )
-            %select.aqs-select2-selector.col-lg-12.invisible#site-input(multiple="multiple")
+      / Site selector
+      %div.row.aqs-row
+        %div.col-lg-12
+          %label(for="site-input")
+            = $I18N->msg( 'projects' )
+          %select.aqs-select2-selector.col-lg-12.invisible#site-input(multiple="multiple")
 
-        - include "../_data_links.php"
+      - include "../_data_links.php"
 
-        / Chart
-        %div.chart-container
-          %canvas.aqs-chart
+      / Chart
+      %div.chart-container
+        %canvas.aqs-chart
 
-        %div.message-container.col-lg-12
+      %div.message-container.col-lg-12
 
-        / Legend
-        %div.col-lg-12.tm.clearfix#chart-legend
+      / Legend
+      %div.col-lg-12.tm.clearfix#chart-legend
 
-        - include "../_footer.php"
+    - include "../_footer.php"
 
-      - include "../_modals.php"
+    - include "../_modals.php"

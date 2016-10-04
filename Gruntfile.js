@@ -36,6 +36,7 @@ module.exports = function(grunt) {
   };
   let hamlFiles = {
     'public_html/_head.php': 'views/_head.haml',
+    'public_html/_header.php': 'views/_header.haml',
     'public_html/_footer.php': 'views/_footer.haml',
     'public_html/_lang_selector.php': 'views/_lang_selector.haml',
     'public_html/_modals.php': 'views/_modals.haml',
