@@ -15,15 +15,11 @@ main {
   }
 }
 
-#chart-legend {
-  padding: 0;
-}
-
-.linear-legend {
-  width: 100%;
-}
-
 .remove-page {
   color: $link;
   cursor: pointer;
+}
+
+.data-links {
+  margin-top: 15px;
 }

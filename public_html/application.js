@@ -1463,7 +1463,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  */
 
 var config = require('./config');
-var siteMap = require('./shared/site_map');
 var Pv = require('./shared/pv');
 var ChartHelpers = require('./shared/chart_helpers');
 
@@ -1507,6 +1506,39 @@ var PageViews = function (_mix$with) {
       this.popParams();
       this.setupListeners();
       this.updateInterAppLinks();
+    }
+
+    /**
+     * Query musikanimal API to get edit data about page within date range
+     * @param {Array} pages - page names
+     * @returns {Deferred} Promise resolving with editing data
+     */
+
+  }, {
+    key: 'getEditData',
+    value: function getEditData(pages) {
+      var dfd = $.Deferred();
+
+      if (metaRoot) {
+        $.ajax({
+          url: '//' + metaRoot + '/article_analysis/basic_info',
+          data: {
+            pages: pages.join('|'),
+            project: this.project,
+            start: this.daterangepicker.startDate.format('YYYY-MM-DD'),
+            end: this.daterangepicker.endDate.format('YYYY-MM-DD')
+          }
+        }).then(function (data) {
+          return dfd.resolve(data);
+        });
+      } else {
+        dfd.resolve({
+          num_edits: 0,
+          num_editors: 0
+        });
+      }
+
+      return dfd;
     }
 
     /**
@@ -1575,7 +1607,7 @@ var PageViews = function (_mix$with) {
       var _this2 = this;
 
       /** show loading indicator and add error handling for timeouts */
-      this.startSpinny();
+      setTimeout(this.startSpinny); // use setTimeout to force rendering threads to catch up
 
       var params = this.validateParams(this.parseQueryString('pages'));
 
@@ -1601,7 +1633,14 @@ var PageViews = function (_mix$with) {
         } else {
           _this2.getPageInfo(pages).then(function (data) {
             _this2.pageInfo = data;
-            _this2.setSelect2Defaults(_this2.underscorePageNames(Object.keys(data)));
+            _this2.getEditData(pages).done(function (editData) {
+              for (var page in editData.pages) {
+                Object.assign(_this2.pageInfo[page.descore()], editData.pages[page]);
+              }
+              _this2.setSelect2Defaults(_this2.underscorePageNames(Object.keys(_this2.pageInfo)));
+            }).fail(function () {
+              _this2.setSelect2Defaults(_this2.underscorePageNames(Object.keys(_this2.pageInfo)));
+            });
           });
         }
       };
@@ -1839,6 +1878,8 @@ var PageViews = function (_mix$with) {
         return this.resetView();
       }
 
+      this.setInitialChartType(entities.length);
+
       // clear out old error messages unless the is the first time rendering the chart
       this.clearMessages();
 
@@ -1863,16 +1904,13 @@ var PageViews = function (_mix$with) {
     value: function massviewsRedirectWithPagePile(pages) {
       var _this5 = this;
 
-      var dfd = $.Deferred(),
-          dbName = Object.keys(siteMap).find(function (key) {
-        return siteMap[key] === _this5.project + '.org';
-      });
+      var dfd = $.Deferred();
 
       $.ajax({
         url: '//tools.wmflabs.org/pagepile/api.php',
         data: {
           action: 'create_pile_with_data',
-          wiki: dbName,
+          wiki: this.dbName(this.project),
           data: pages.join('\n')
         }
       }).success(function (pileData) {
@@ -1903,7 +1941,7 @@ $(document).ready(function () {
   new PageViews();
 });
 
-},{"./config":1,"./shared/chart_helpers":3,"./shared/pv":7,"./shared/site_map":9}],3:[function(require,module,exports){
+},{"./config":1,"./shared/chart_helpers":3,"./shared/pv":7}],3:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2036,7 +2074,7 @@ var ChartHelpers = function ChartHelpers(superclass) {
       value: function destroyChart() {
         if (this.chartObj) {
           this.chartObj.destroy();
-          $('#chart-legend').html('');
+          $('.chart-legend').html('');
         }
       }
 
@@ -2563,7 +2601,7 @@ var ChartHelpers = function ChartHelpers(superclass) {
       value: function updateChart(xhrData) {
         var _this8 = this;
 
-        $('#chart-legend').html(''); // clear old chart legend
+        $('.chart-legend').html(''); // clear old chart legend
 
         // show pending error messages if present, exiting if fatal
         if (this.showErrors(xhrData)) return;
@@ -2667,7 +2705,7 @@ var ChartHelpers = function ChartHelpers(superclass) {
           });
         }
 
-        $('#chart-legend').html(this.chartObj.generateLegend());
+        $('.chart-legend').html(this.chartObj.generateLegend());
         $('.data-links').removeClass('invisible');
       }
 
@@ -3522,8 +3560,19 @@ var Pv = function (_PvConfig) {
      */
 
   }, {
-    key: 'downloadData',
+    key: 'dbName',
 
+
+    /**
+     * Get the database name of the given projet
+     * @param  {String} project - with or without .org
+     * @return {String} database name
+     */
+    value: function dbName(project) {
+      return Object.keys(siteMap).find(function (key) {
+        return siteMap[key] === project.replace(/\.org$/, '') + '.org';
+      });
+    }
 
     /**
      * Force download of given data, or open in a new tab if HTML5 <a> download attribute is not supported
@@ -3531,6 +3580,9 @@ var Pv = function (_PvConfig) {
      * @param {String} extension - the file extension to use
      * @returns {null} Nothing
      */
+
+  }, {
+    key: 'downloadData',
     value: function downloadData(data, extension) {
       var encodedUri = encodeURI(data);
 
@@ -4303,7 +4355,7 @@ var Pv = function (_PvConfig) {
     value: function patchUsage(app) {
       if (metaRoot) {
         $.ajax({
-          url: '//' + metaRoot + '/' + this.app + '/' + (this.project || i18nLang),
+          url: '//' + metaRoot + '/usage/' + this.app + '/' + (this.project || i18nLang),
           method: 'PATCH'
         });
       }
@@ -4979,6 +5031,18 @@ var PvConfig = function () {
                 ticks: {
                   callback: function callback(value) {
                     return _this.formatYAxisNumber(value);
+                  }
+                }
+              }],
+              xAxes: [{
+                ticks: {
+                  callback: function callback(value, index) {
+                    var dayOfWeek = moment(value, _this.dateFormat).weekday();
+                    if (dayOfWeek % 7) {
+                      return value;
+                    } else {
+                      return '• ' + value;
+                    }
                   }
                 }
               }]
@@ -6166,23 +6230,56 @@ module.exports = siteMap;
  */
 var templates = {
   linearLegend: function linearLegend(datasets, scope) {
-    var markup = '';
+    var dataList = function dataList(entry) {
+      var markup = '';
+
+      var protectionList = entry.protection || [{ type: 'edit', level: 'none' }];
+
+      var infoHash = {
+        'Pageviews': {
+          'Pageviews': scope.formatNumber(entry.sum),
+          'Daily average': scope.formatNumber(entry.average)
+        },
+        'Revisions': {
+          'Edits': '<a href="' + scope.getExpandedPageURL(entry.label) + '&action=history" target="_blank" class="pull-right">\n              ' + scope.formatNumber(entry.num_edits) + '\n            </a>',
+          'Editors': scope.formatNumber(entry.num_users)
+        },
+        'Page information': {
+          'Protection': protectionList.find(function (prot) {
+            return prot.type === 'edit';
+          }).level,
+          'Watchers': scope.formatNumber(entry.watchers)
+        }
+      };
+
+      for (var block in infoHash) {
+        markup += '<div class=\'legend-block\'><h5>' + block + '</h5><hr/>';
+        for (var key in infoHash[block]) {
+          markup += '\n            <div class="linear-legend--counts">\n              ' + key + ':\n              <span class=\'pull-right\'>\n                ' + infoHash[block][key] + '\n              </span>\n            </div>';
+        }
+        markup += '</div>';
+      }
+
+      return markup + ('\n        <div class="linear-legend--links">\n          <a href="' + scope.getLangviewsURL(entry.label) + '" target="_blank">' + $.i18n('all-languages') + '</a>\n          &bullet;\n          <a href="' + scope.getRedirectviewsURL(entry.label) + '" target="_blank">' + $.i18n('redirects') + '</a>\n        </div>');
+    };
+
     if (datasets.length === 1) {
-      var dataset = datasets[0];
-      return '<div class="linear-legend--totals">\n        <strong>' + $.i18n('totals') + ':</strong>\n        ' + scope.formatNumber(dataset.sum) + ' (' + scope.formatNumber(dataset.average) + '/' + $.i18n('day') + ')\n        &bullet;\n        <a href="' + scope.getLangviewsURL(dataset.label) + '" target="_blank">' + $.i18n('all-languages') + '</a>\n        &bullet;\n        <a href="' + scope.getRedirectviewsURL(dataset.label) + '" target="_blank">' + $.i18n('redirects') + '</a>\n        &bullet;\n        <a href="' + scope.getExpandedPageURL(dataset.label) + '&action=history" target="_blank">' + $.i18n('history') + '</a>\n        &bullet;\n        <a href="' + scope.getExpandedPageURL(dataset.label) + '&action=info" target="_blank">' + $.i18n('info') + '</a>\n      </div>';
+      var pageInfo = Object.assign({}, datasets[0], scope.pageInfo[datasets[0].label]);
+      return dataList(pageInfo);
     }
 
-    if (datasets.length > 1) {
-      var total = datasets.reduce(function (a, b) {
-        return a + b.sum;
-      }, 0);
-      markup = '<div class="linear-legend--totals">\n        <span class=\'pull-right\'>\n          ' + scope.formatNumber(total) + ' (' + scope.formatNumber(Math.round(total / scope.numDaysInRange())) + '/' + $.i18n('day') + ')\n        </span>\n        <strong>' + $.i18n('totals') + ':</strong>\n      </div>';
-    }
+    var total = datasets.reduce(function (a, b) {
+      return a + b.sum;
+    }, 0);
+    var markup = '';
+
+    markup = '<div class="linear-legend--totals">\n      <span class=\'pull-right\'>\n        ' + scope.formatNumber(total) + ' (' + scope.formatNumber(Math.round(total / scope.numDaysInRange())) + '/' + $.i18n('day') + ')\n      </span>\n      <strong>' + $.i18n('totals') + ':</strong>\n    </div>';
+
     markup += '<div class="linear-legends">';
 
     for (var i = 0; i < datasets.length; i++) {
-      var pageInfo = scope.pageInfo[datasets[i].label];
-      markup += '\n        <span class="linear-legend">\n          <div class="linear-legend--label" style="background-color:' + scope.rgba(datasets[i].color, 0.8) + '">\n            <span class=\'pull-right remove-page glyphicon glyphicon-remove\' data-article=' + pageInfo.title + ' title=\'Remove page\'></span>\n            <a href="' + scope.getPageURL(datasets[i].label) + '" target="_blank">' + datasets[i].label + '</a>\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(datasets[i].sum) + '\n            </span>\n            Pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(datasets[i].average) + '/' + $.i18n('day') + '\n            </span>\n            Avg pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(pageInfo.length) + '\n            </span>\n            Size:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(pageInfo.watchers) + '\n            </span>\n            Watchers:\n          </div>\n          <div class="linear-legend--links">\n            <a href="' + scope.getLangviewsURL(datasets[i].label) + '" target="_blank">' + $.i18n('all-languages') + '</a>\n            &bullet;\n            <a href="' + scope.getRedirectviewsURL(datasets[i].label) + '" target="_blank">' + $.i18n('redirects') + '</a>\n          </div>\n        </span>\n      ';
+      var _pageInfo = Object.assign({}, datasets[i], scope.pageInfo[datasets[i].label]);
+      markup += '\n        <span class="linear-legend">\n          <div class="linear-legend--label" style="background-color:' + scope.rgba(_pageInfo.color, 0.8) + '">\n            <span class=\'pull-right remove-page glyphicon glyphicon-remove\' data-article=' + _pageInfo.title + ' title=\'Remove page\'></span>\n            <a href="' + scope.getPageURL(_pageInfo.label) + '" target="_blank">' + _pageInfo.label + '</a>\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.sum) + '\n            </span>\n            Pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.average) + '/' + $.i18n('day') + '\n            </span>\n            Avg pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.num_edits) + '\n            </span>\n            Edits:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.num_users) + '\n            </span>\n            Editors:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.length) + '\n            </span>\n            Size:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.watchers) + '\n            </span>\n            Watchers:\n          </div>\n          <div class="linear-legend--links">\n            <a href="' + scope.getLangviewsURL(_pageInfo.label) + '" target="_blank">' + $.i18n('all-languages') + '</a>\n            &bullet;\n            <a href="' + scope.getRedirectviewsURL(_pageInfo.label) + '" target="_blank">' + $.i18n('redirects') + '</a>\n          </div>\n        </span>\n      ';
     }
     return markup += '</div>';
   },

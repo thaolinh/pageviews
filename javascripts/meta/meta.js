@@ -227,7 +227,7 @@ class MetaViews extends mix(Pv).with(ChartHelpers) {
       endDate = this.daterangepicker.endDate.startOf('day');
 
     xhrData.entities.forEach((tool, index) => {
-      const url = `//${metaRoot}/${tool}` +
+      const url = `//${metaRoot}/usage/${tool}` +
         `/${startDate.format('YYYY-MM-DD')}/${endDate.format('YYYY-MM-DD')}`;
 
       const promise = $.ajax({

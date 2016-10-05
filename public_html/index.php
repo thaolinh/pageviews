@@ -8,6 +8,11 @@
     <title><?php echo $I18N->msg( 'title' ); ?></title>
   </head>
   <body class="<?php echo $rtl; ?> <?php echo $currentApp; ?>">
+    <div class="text-center site-notice-wrapper">
+      <div class="site-notice">
+        <?php include "_browser_check.php"; ?>
+      </div>
+    </div>
     <?php include '_header.php'; ?>
     <aside class="col-lg-2 page-selector">
       <header class="text-center">
@@ -67,20 +72,30 @@
             </option>
           </select>
         </div>
-        <div>
-          <label for="article-input">
-            <?php echo $I18N->msg( 'pages' ); ?>
+        <div class="chart-specific">
+          <label class="logarithmic-scale">
+            <input class="logarithmic-scale-option" type="checkbox">
+            <?php echo $I18N->msg( 'logarithmic-scale' ); ?>
           </label>
-          <select class="aqs-select2-selector col-lg-12 invisible" id="article-input" multiple="multiple"></select>
+        </div>
+        <div class="chart-specific">
+          <label class="begin-at-zero">
+            <input class="begin-at-zero-option" type="checkbox">
+            <?php echo $I18N->msg( 'begin-at-zero' ); ?>
+          </label>
+        </div>
+        <div>
+          <button class="btn btn-default btn-sm btn-chart-type chart-specific js-test-change-chart" data-target="#chart-type-modal" data-toggle="modal"><span class="glyphicon glyphicon-th"></span>
+          <?php echo $I18N->msg( 'change-chart' ); ?></button>
         </div>
       </div>
     </aside>
     <main class="col-lg-8">
-      <!-- Site notice -->
-      <div class="text-center site-notice-wrapper">
-        <div class="site-notice">
-          <?php include "_browser_check.php"; ?>
-        </div>
+      <div>
+        <label for="article-input">
+          <?php echo $I18N->msg( 'pages' ); ?>
+        </label>
+        <select class="aqs-select2-selector col-lg-12 invisible" id="article-input" multiple="multiple"></select>
       </div>
       <?php include "_data_links.php"; ?>
       <!-- Chart -->
@@ -91,10 +106,10 @@
     </main>
     <aside class="col-lg-2 summary-column">
       <header class="text-center">
-        <h4>Summary</h4>
+        <h4>Totals</h4>
       </header>
       <div class="summary-column--container">
-        <div class="col-lg-12 clearfix" id="chart-legend"></div>
+        <div class="chart-legend col-lg-12 clearfix"></div>
       </div>
     </aside>
     <?php include "_footer.php"; ?>

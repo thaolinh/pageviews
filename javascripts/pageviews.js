@@ -7,10 +7,8 @@
  */
 
 const config = require('./config');
-const siteMap = require('./shared/site_map');
 const Pv = require('./shared/pv');
 const ChartHelpers = require('./shared/chart_helpers');
-
 
 /** Main PageViews class */
 class PageViews extends mix(Pv).with(ChartHelpers) {
@@ -41,6 +39,34 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
     this.popParams();
     this.setupListeners();
     this.updateInterAppLinks();
+  }
+
+  /**
+   * Query musikanimal API to get edit data about page within date range
+   * @param {Array} pages - page names
+   * @returns {Deferred} Promise resolving with editing data
+   */
+  getEditData(pages) {
+    const dfd = $.Deferred();
+
+    if (metaRoot) {
+      $.ajax({
+        url: `//${metaRoot}/article_analysis/basic_info`,
+        data: {
+          pages: pages.join('|'),
+          project: this.project,
+          start: this.daterangepicker.startDate.format('YYYY-MM-DD'),
+          end: this.daterangepicker.endDate.format('YYYY-MM-DD')
+        }
+      }).then(data => dfd.resolve(data));
+    } else {
+      dfd.resolve({
+        num_edits: 0,
+        num_editors: 0
+      });
+    }
+
+    return dfd;
   }
 
   /**
@@ -95,7 +121,7 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
    */
   popParams() {
     /** show loading indicator and add error handling for timeouts */
-    this.startSpinny();
+    setTimeout(this.startSpinny); // use setTimeout to force rendering threads to catch up
 
     let params = this.validateParams(
       this.parseQueryString('pages')
@@ -123,9 +149,18 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
       } else {
         this.getPageInfo(pages).then(data => {
           this.pageInfo = data;
-          this.setSelect2Defaults(
-            this.underscorePageNames(Object.keys(data))
-          );
+          this.getEditData(pages).done(editData => {
+            for (let page in editData.pages) {
+              Object.assign(this.pageInfo[page.descore()], editData.pages[page]);
+            }
+            this.setSelect2Defaults(
+              this.underscorePageNames(Object.keys(this.pageInfo))
+            );
+          }).fail(() => {
+            this.setSelect2Defaults(
+              this.underscorePageNames(Object.keys(this.pageInfo))
+            );
+          });
         });
       }
     };
@@ -333,6 +368,8 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
       return this.resetView();
     }
 
+    this.setInitialChartType(entities.length);
+
     // clear out old error messages unless the is the first time rendering the chart
     this.clearMessages();
 
@@ -350,14 +387,13 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
    * @returns {Deferred} promise resolved only if creation of PagePile failed
    */
   massviewsRedirectWithPagePile(pages) {
-    const dfd = $.Deferred(),
-      dbName = Object.keys(siteMap).find(key => siteMap[key] === `${this.project}.org`);
+    const dfd = $.Deferred();
 
     $.ajax({
       url: '//tools.wmflabs.org/pagepile/api.php',
       data: {
         action: 'create_pile_with_data',
-        wiki: dbName,
+        wiki: this.dbName(this.project),
         data: pages.join('\n')
       }
     }).success(pileData => {

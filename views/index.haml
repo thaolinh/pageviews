@@ -7,6 +7,10 @@
     - include '_head.php'
     %title= $I18N->msg( 'title' )
   %body(class="#{$rtl} #{$currentApp}")
+    %div.text-center.site-notice-wrapper
+      %div.site-notice
+        - include "_browser_check.php"
+
     - include '_header.php'
 
     %aside.col-lg-2.page-selector
@@ -47,17 +51,26 @@
               = $I18N->msg( 'spider' )
             %option(value="bot")
               = $I18N->msg( 'bot' )
+        %div.chart-specific
+          %label.logarithmic-scale
+            %input.logarithmic-scale-option(type="checkbox")
+            = $I18N->msg( 'logarithmic-scale' )
+
+        %div.chart-specific
+          %label.begin-at-zero
+            %input.begin-at-zero-option(type="checkbox")
+            = $I18N->msg( 'begin-at-zero' )
 
         %div
-          %label(for="article-input")
-            = $I18N->msg( 'pages' )
-          %select.aqs-select2-selector.col-lg-12.invisible#article-input(multiple="multiple")
+          %button.btn.btn-default.btn-sm.btn-chart-type.chart-specific.js-test-change-chart(data-target="#chart-type-modal" data-toggle="modal")<
+            %span.glyphicon.glyphicon-th
+            = $I18N->msg( 'change-chart' )
 
     %main.col-lg-8
-      / Site notice
-      %div.text-center.site-notice-wrapper
-        %div.site-notice
-          - include "_browser_check.php"
+      %div
+        %label(for="article-input")
+          = $I18N->msg( 'pages' )
+        %select.aqs-select2-selector.col-lg-12.invisible#article-input(multiple="multiple")
 
       - include "_data_links.php"
 
@@ -69,9 +82,9 @@
 
     %aside.col-lg-2.summary-column
       %header.text-center
-        %h4 Summary
+        %h4 Totals
       %div.summary-column--container
-        %div.col-lg-12.clearfix#chart-legend
+        %div.chart-legend.col-lg-12.clearfix
 
     - include "_footer.php"
 

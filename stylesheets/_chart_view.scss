@@ -39,6 +39,18 @@
   }
 }
 
+.chart-legend {
+  padding: 0;
+
+  hr {
+    margin: 10px 0 5px;
+  }
+
+  .legend-block {
+    padding-bottom: 10px;
+  }
+}
+
 .linear-legend {
   background: $white;
   border: solid 1px $gray;
@@ -69,7 +81,7 @@
 }
 
 .linear-legend--counts {
-  padding: 5px 10px 0;
+  margin-bottom: 5px;
 }
 
 .linear-legend--links {

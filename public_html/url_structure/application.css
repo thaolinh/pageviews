@@ -40,6 +40,26 @@ body {
   overflow-x: hidden;
 }
 
+.nav-tabs .active a {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+.nav-buttons {
+  padding: 6px;
+}
+.nav-buttons > * {
+  margin-right: 6px;
+}
+.nav-buttons > *:last-child {
+  margin: 0;
+}
+
+.site-header {
+  margin-top: 0;
+  padding: 10px;
+}
+
 hr {
   border-color: #e0e0e0;
 }
@@ -357,9 +377,8 @@ footer {
 }
 
 .lang-group {
-  position: absolute;
-  right: 0;
-  top: 0;
+  float: none !important;
+  position: relative;
 }
 .lang-group .dropdown-menu {
   background: #fff;

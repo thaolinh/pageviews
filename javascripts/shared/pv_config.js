@@ -28,6 +28,18 @@ class PvConfig {
                 ticks: {
                   callback: value => this.formatYAxisNumber(value)
                 }
+              }],
+              xAxes: [{
+                ticks: {
+                  callback: (value, index) => {
+                    const dayOfWeek = moment(value, this.dateFormat).weekday();
+                    if (dayOfWeek % 7) {
+                      return value;
+                    } else {
+                      return `• ${value}`;
+                    }
+                  }
+                }
               }]
             },
             legendCallback: chart => this.config.linearLegend(chart.data.datasets, self),

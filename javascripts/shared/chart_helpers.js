@@ -99,7 +99,7 @@ const ChartHelpers = superclass => class extends superclass {
   destroyChart() {
     if (this.chartObj) {
       this.chartObj.destroy();
-      $('#chart-legend').html('');
+      $('.chart-legend').html('');
     }
   }
 
@@ -549,7 +549,7 @@ const ChartHelpers = superclass => class extends superclass {
    * @returns {null} - nothin
    */
   updateChart(xhrData) {
-    $('#chart-legend').html(''); // clear old chart legend
+    $('.chart-legend').html(''); // clear old chart legend
 
     // show pending error messages if present, exiting if fatal
     if (this.showErrors(xhrData)) return;
@@ -643,7 +643,7 @@ const ChartHelpers = superclass => class extends superclass {
       });
     }
 
-    $('#chart-legend').html(this.chartObj.generateLegend());
+    $('.chart-legend').html(this.chartObj.generateLegend());
     $('.data-links').removeClass('invisible');
   }
 

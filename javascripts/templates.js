@@ -12,53 +12,98 @@
  */
 const templates = {
   linearLegend(datasets, scope) {
-    let markup = '';
+    const dataList = entry => {
+      let markup = '';
+
+      const protectionList = entry.protection || [{ type: 'edit', level: 'none' }];
+
+      const infoHash = {
+        'Pageviews': {
+          'Pageviews': scope.formatNumber(entry.sum),
+          'Daily average': scope.formatNumber(entry.average)
+        },
+        'Revisions': {
+          'Edits': `<a href="${scope.getExpandedPageURL(entry.label)}&action=history" target="_blank" class="pull-right">
+              ${scope.formatNumber(entry.num_edits)}
+            </a>`,
+          'Editors': scope.formatNumber(entry.num_users)
+        },
+        'Page information': {
+          'Protection': protectionList.find(prot => prot.type === 'edit').level,
+          'Watchers': scope.formatNumber(entry.watchers)
+        }
+      };
+
+      for (let block in infoHash) {
+        markup += `<div class='legend-block'><h5>${block}</h5><hr/>`;
+        for (let key in infoHash[block]) {
+          markup += `
+            <div class="linear-legend--counts">
+              ${key}:
+              <span class='pull-right'>
+                ${infoHash[block][key]}
+              </span>
+            </div>`;
+        }
+        markup += '</div>';
+      }
+
+      return markup + `
+        <div class="linear-legend--links">
+          <a href="${scope.getLangviewsURL(entry.label)}" target="_blank">${$.i18n('all-languages')}</a>
+          &bullet;
+          <a href="${scope.getRedirectviewsURL(entry.label)}" target="_blank">${$.i18n('redirects')}</a>
+        </div>`;
+    };
+
     if (datasets.length === 1) {
-      const dataset = datasets[0];
-      return `<div class="linear-legend--totals">
-        <strong>${$.i18n('totals')}:</strong>
-        ${scope.formatNumber(dataset.sum)} (${scope.formatNumber(dataset.average)}/${$.i18n('day')})
-        &bullet;
-        <a href="${scope.getLangviewsURL(dataset.label)}" target="_blank">${$.i18n('all-languages')}</a>
-        &bullet;
-        <a href="${scope.getRedirectviewsURL(dataset.label)}" target="_blank">${$.i18n('redirects')}</a>
-        &bullet;
-        <a href="${scope.getExpandedPageURL(dataset.label)}&action=history" target="_blank">${$.i18n('history')}</a>
-        &bullet;
-        <a href="${scope.getExpandedPageURL(dataset.label)}&action=info" target="_blank">${$.i18n('info')}</a>
-      </div>`;
+      const pageInfo = Object.assign({}, datasets[0], scope.pageInfo[datasets[0].label]);
+      return dataList(pageInfo);
     }
 
-    if (datasets.length > 1) {
-      const total = datasets.reduce((a,b) => a + b.sum, 0);
-      markup = `<div class="linear-legend--totals">
-        <span class='pull-right'>
-          ${scope.formatNumber(total)} (${scope.formatNumber(Math.round(total / scope.numDaysInRange()))}/${$.i18n('day')})
-        </span>
-        <strong>${$.i18n('totals')}:</strong>
-      </div>`;
-    }
+    const total = datasets.reduce((a,b) => a + b.sum, 0);
+    let markup = '';
+
+    markup = `<div class="linear-legend--totals">
+      <span class='pull-right'>
+        ${scope.formatNumber(total)} (${scope.formatNumber(Math.round(total / scope.numDaysInRange()))}/${$.i18n('day')})
+      </span>
+      <strong>${$.i18n('totals')}:</strong>
+    </div>`;
+
     markup += '<div class="linear-legends">';
 
     for (let i = 0; i < datasets.length; i++) {
-      const pageInfo = scope.pageInfo[datasets[i].label];
+      const pageInfo = Object.assign({}, datasets[i], scope.pageInfo[datasets[i].label]);
       markup += `
         <span class="linear-legend">
-          <div class="linear-legend--label" style="background-color:${scope.rgba(datasets[i].color, 0.8)}">
+          <div class="linear-legend--label" style="background-color:${scope.rgba(pageInfo.color, 0.8)}">
             <span class='pull-right remove-page glyphicon glyphicon-remove' data-article=${pageInfo.title} title='Remove page'></span>
-            <a href="${scope.getPageURL(datasets[i].label)}" target="_blank">${datasets[i].label}</a>
+            <a href="${scope.getPageURL(pageInfo.label)}" target="_blank">${pageInfo.label}</a>
           </div>
           <div class="linear-legend--counts">
             <span class='pull-right'>
-              ${scope.formatNumber(datasets[i].sum)}
+              ${scope.formatNumber(pageInfo.sum)}
             </span>
             Pageviews:
           </div>
           <div class="linear-legend--counts">
             <span class='pull-right'>
-              ${scope.formatNumber(datasets[i].average)}/${$.i18n('day')}
+              ${scope.formatNumber(pageInfo.average)}/${$.i18n('day')}
             </span>
             Avg pageviews:
+          </div>
+          <div class="linear-legend--counts">
+            <span class='pull-right'>
+              ${scope.formatNumber(pageInfo.num_edits)}
+            </span>
+            Edits:
+          </div>
+          <div class="linear-legend--counts">
+            <span class='pull-right'>
+              ${scope.formatNumber(pageInfo.num_users)}
+            </span>
+            Editors:
           </div>
           <div class="linear-legend--counts">
             <span class='pull-right'>
@@ -73,9 +118,9 @@ const templates = {
             Watchers:
           </div>
           <div class="linear-legend--links">
-            <a href="${scope.getLangviewsURL(datasets[i].label)}" target="_blank">${$.i18n('all-languages')}</a>
+            <a href="${scope.getLangviewsURL(pageInfo.label)}" target="_blank">${$.i18n('all-languages')}</a>
             &bullet;
-            <a href="${scope.getRedirectviewsURL(datasets[i].label)}" target="_blank">${$.i18n('redirects')}</a>
+            <a href="${scope.getRedirectviewsURL(pageInfo.label)}" target="_blank">${$.i18n('redirects')}</a>
           </div>
         </span>
       `;

@@ -198,6 +198,15 @@ class Pv extends PvConfig {
   }
 
   /**
+   * Get the database name of the given projet
+   * @param  {String} project - with or without .org
+   * @return {String} database name
+   */
+  dbName(project) {
+    return Object.keys(siteMap).find(key => siteMap[key] === `${project.replace(/\.org$/,'')}.org`);
+  }
+
+  /**
    * Force download of given data, or open in a new tab if HTML5 <a> download attribute is not supported
    * @param {String} data - Raw data prepended with data type, e.g. "data:text/csv;charset=utf-8,my data..."
    * @param {String} extension - the file extension to use
@@ -898,7 +907,7 @@ class Pv extends PvConfig {
   patchUsage(app) {
     if (metaRoot) {
       $.ajax({
-        url: `//${metaRoot}/${this.app}/${this.project || i18nLang}`,
+        url: `//${metaRoot}/usage/${this.app}/${this.project || i18nLang}`,
         method: 'PATCH'
       });
     }
