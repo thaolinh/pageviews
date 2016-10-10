@@ -15,7 +15,7 @@ const templates = {
     const dataList = entry => {
       let markup = '';
 
-      const protectionList = entry.protection || [{ type: 'edit', level: 'none' }];
+      const protectionList = entry.protection && entry.protection.length ? entry.protection : [{ type: 'edit', level: 'none' }];
 
       const infoHash = {
         'Pageviews': {
@@ -29,6 +29,7 @@ const templates = {
           'Editors': scope.formatNumber(entry.num_users)
         },
         'Page information': {
+          'Size': scope.formatNumber(entry.length),
           'Protection': protectionList.find(prot => prot.type === 'edit').level,
           'Watchers': scope.formatNumber(entry.watchers)
         }
@@ -37,11 +38,13 @@ const templates = {
       for (let block in infoHash) {
         markup += `<div class='legend-block'><h5>${block}</h5><hr/>`;
         for (let key in infoHash[block]) {
+          const value = infoHash[block][key];
+          if (!value) continue;
           markup += `
             <div class="linear-legend--counts">
               ${key}:
               <span class='pull-right'>
-                ${infoHash[block][key]}
+                ${value}
               </span>
             </div>`;
         }
@@ -76,7 +79,7 @@ const templates = {
     for (let i = 0; i < datasets.length; i++) {
       const pageInfo = Object.assign({}, datasets[i], scope.pageInfo[datasets[i].label]);
       markup += `
-        <span class="linear-legend">
+        <div class="linear-legend">
           <div class="linear-legend--label" style="background-color:${scope.rgba(pageInfo.color, 0.8)}">
             <span class='pull-right remove-page glyphicon glyphicon-remove' data-article=${pageInfo.title} title='Remove page'></span>
             <a href="${scope.getPageURL(pageInfo.label)}" target="_blank">${pageInfo.label}</a>
@@ -122,7 +125,7 @@ const templates = {
             &bullet;
             <a href="${scope.getRedirectviewsURL(pageInfo.label)}" target="_blank">${$.i18n('redirects')}</a>
           </div>
-        </span>
+        </div>
       `;
     }
     return markup += '</div>';

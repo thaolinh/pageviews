@@ -1,4 +1,4 @@
-<nav>
+<nav class="top-nav">
   <span class="pull-right nav-buttons">
     <button class="btn btn-default btn-sm btn-settings js-test-settings" data-target="#settings-modal" data-toggle="modal">
       <span class="glyphicon glyphicon-wrench"></span>

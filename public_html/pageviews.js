@@ -71,6 +71,7 @@ var PageViews = function (_mix$with) {
 
     _this.pageInfo = false; /** let's us know if we've gotten the page info from API yet */
     _this.specialRange = null;
+    _this.initialQuery = false;
 
     /**
      * Select2 library prints "Uncaught TypeError: XYZ is not a function" errors
@@ -198,7 +199,7 @@ var PageViews = function (_mix$with) {
       var _this2 = this;
 
       /** show loading indicator and add error handling for timeouts */
-      setTimeout(this.startSpinny); // use setTimeout to force rendering threads to catch up
+      setTimeout(this.startSpinny.bind(this)); // use setTimeout to force rendering threads to catch up
 
       var params = this.validateParams(this.parseQueryString('pages'));
 
@@ -212,28 +213,16 @@ var PageViews = function (_mix$with) {
       this.resetSelect2();
 
       /**
-       * Normalizes the page names then sets the Select2 defaults,
-       *   which triggers the Select2 listener and renders the chart
+       * Sets the Select2 defaults, which triggers the Select2 listener and calls this.processInput
        * @param {Array} pages - pages to query
        * @return {null} nothing
        */
       var getPageInfoAndSetDefaults = function getPageInfoAndSetDefaults(pages) {
-        if (_this2.pageInfo) {
-          pages = _this2.underscorePageNames(pages);
-          _this2.setSelect2Defaults(pages);
-        } else {
-          _this2.getPageInfo(pages).then(function (data) {
-            _this2.pageInfo = data;
-            _this2.getEditData(pages).done(function (editData) {
-              for (var page in editData.pages) {
-                Object.assign(_this2.pageInfo[page.descore()], editData.pages[page]);
-              }
-              _this2.setSelect2Defaults(_this2.underscorePageNames(Object.keys(_this2.pageInfo)));
-            }).fail(function () {
-              _this2.setSelect2Defaults(_this2.underscorePageNames(Object.keys(_this2.pageInfo)));
-            });
-          });
-        }
+        _this2.getPageAndEditInfo(pages).then(function (pageInfo) {
+          _this2.initialQuery = true;
+          var normalizedPageNames = Object.keys(pageInfo);
+          _this2.setSelect2Defaults(_this2.underscorePageNames(normalizedPageNames));
+        });
       };
 
       // set up default pages if none were passed in
@@ -478,9 +467,53 @@ var PageViews = function (_mix$with) {
       this.destroyChart();
       this.startSpinny(); // show spinny and capture against fatal errors
 
-      this.getPageViewsData(entities).done(function (xhrData) {
-        return _this4.updateChart(xhrData);
+      // We've already gotten data about the intial set of pages
+      // This is because we need any page names given to be normalized when the app first loads
+      if (this.initialQuery) {
+        this.getPageViewsData(entities).done(function (xhrData) {
+          return _this4.updateChart(xhrData);
+        });
+        // set back to false so we get page and edit info for any newly entered pages
+        this.initialQuery = false;
+      } else {
+        this.getPageAndEditInfo(entities).then(function () {
+          _this4.getPageViewsData(entities).done(function (xhrData) {
+            return _this4.updateChart(xhrData);
+          });
+        });
+      }
+    }
+
+    /**
+     * Get page info and editing info of given pages.
+     * Also sets this.pageInfo
+     * @param  {Array} pages - page names
+     * @return {Deferred} Promise resolving with this.pageInfo
+     */
+
+  }, {
+    key: 'getPageAndEditInfo',
+    value: function getPageAndEditInfo(pages) {
+      var _this5 = this;
+
+      var dfd = $.Deferred();
+
+      this.getPageInfo(pages).done(function (data) {
+        _this5.pageInfo = data;
+        // use Object.keys(data) to get normalized page names
+        _this5.getEditData(Object.keys(data)).done(function (editData) {
+          for (var page in editData.pages) {
+            Object.assign(_this5.pageInfo[page.descore()], editData.pages[page]);
+          }
+          dfd.resolve(_this5.pageInfo);
+        }).fail(function () {
+          dfd.resolve(_this5.pageInfo); // treat as if successful, simply won't show the data
+        });
+      }).fail(function () {
+        dfd.resolve({}); // same, simply won't show the data if it failed
       });
+
+      return dfd;
     }
 
     /**
@@ -493,7 +526,7 @@ var PageViews = function (_mix$with) {
   }, {
     key: 'massviewsRedirectWithPagePile',
     value: function massviewsRedirectWithPagePile(pages) {
-      var _this5 = this;
+      var _this6 = this;
 
       var dfd = $.Deferred();
 
@@ -505,12 +538,12 @@ var PageViews = function (_mix$with) {
           data: pages.join('\n')
         }
       }).success(function (pileData) {
-        var params = _this5.getParams();
+        var params = _this6.getParams();
         delete params.project;
         document.location = '/massviews?overflow=1&' + $.param(params) + '&source=pagepile&target=' + pileData.pile.id;
       }).fail(function () {
         // just grab first 10 pages and throw an error
-        _this5.writeMessage($.i18n('auto-pagepile-error', 'PagePile', 10));
+        _this6.writeMessage($.i18n('auto-pagepile-error', 'PagePile', 10), 'error');
         dfd.resolve(pages.slice(0, 10));
       });
 
@@ -606,12 +639,12 @@ var ChartHelpers = function ChartHelpers(superclass) {
           _this.setLocalStorage('pageviews-chart-preference', _this.chartType);
         }
 
-        _this.isChartApp() ? _this.processInput() : _this.renderData();
+        _this.isChartApp() ? _this.updateChart(_this.pageViewsData) : _this.renderData();
       });
 
       $(_this.config.logarithmicCheckbox).on('click', function () {
         _this.autoLogDetection = 'false';
-        _this.isChartApp() ? _this.processInput(true) : _this.renderData();
+        _this.isChartApp() ? _this.updateChart(_this.pageViewsData) : _this.renderData();
       });
 
       /**
@@ -627,7 +660,7 @@ var ChartHelpers = function ChartHelpers(superclass) {
       }
 
       $('.begin-at-zero-option').on('click', function () {
-        _this.isChartApp() ? _this.processInput(true) : _this.renderData();
+        _this.isChartApp() ? _this.updateChart(_this.pageViewsData) : _this.renderData();
       });
 
       /** chart download listeners */
@@ -964,6 +997,7 @@ var ChartHelpers = function ChartHelpers(superclass) {
             }
           }).always(function () {
             if (++count === totalRequestCount) {
+              _this6.pageViewsData = xhrData;
               dfd.resolve(xhrData);
 
               if (failedEntities.length) {
@@ -2035,12 +2069,31 @@ var Pv = function (_PvConfig) {
     $.i18n({
       locale: i18nLang
     }).load(messagesToLoad).then(_this.initialize.bind(_this));
+
+    /** set up toastr config. The duration may be overriden later */
+    toastr.options = {
+      closeButton: true,
+      debug: location.host === 'localhost',
+      newestOnTop: false,
+      progressBar: false,
+      positionClass: 'toast-bottom-center',
+      preventDuplicates: false,
+      onclick: null,
+      showDuration: '300',
+      hideDuration: '1000',
+      timeOut: '5000',
+      extendedTimeOut: '1000',
+      showEasing: 'swing',
+      hideEasing: 'linear',
+      showMethod: 'fadeIn',
+      hideMethod: 'fadeOut'
+    };
     return _this;
   }
 
   /**
    * Add a site notice (Bootstrap alert)
-   * @param {String} level - one of 'success', 'info', 'warning' or 'danger'
+   * @param {String} level - one of 'success', 'info', 'warning' or 'error'
    * @param {String} message - message to show
    * @param {String} [title] - will appear in bold and in front of the message
    * @param {Boolean} [dismissable] - whether or not to add a X
@@ -2064,7 +2117,7 @@ var Pv = function (_PvConfig) {
         dismissable = '';
       }
 
-      $('.site-notice').append('<div class=\'alert alert-' + level + dismissable + '\'>' + markup + '</div>');
+      this.writeMessage(markup, level, dismissable ? 10000 : 0);
     }
 
     /**
@@ -2077,7 +2130,7 @@ var Pv = function (_PvConfig) {
     key: 'addInvalidParamNotice',
     value: function addInvalidParamNotice(param) {
       var docLink = '<a href=\'/' + this.app + '/url_structure\'>' + $.i18n('documentation') + '</a>';
-      this.addSiteNotice('danger', $.i18n('param-error-3', param, docLink), $.i18n('invalid-params'), true);
+      this.addSiteNotice('error', $.i18n('param-error-3', param, docLink), $.i18n('invalid-params'), true);
     }
 
     /**
@@ -2118,10 +2171,10 @@ var Pv = function (_PvConfig) {
 
         // check if they are outside the valid range or if in the wrong order
         if (startDate < this.config.minDate || endDate < this.config.minDate) {
-          this.addSiteNotice('danger', $.i18n('param-error-1', moment(this.config.minDate).format(this.dateFormat)), $.i18n('invalid-params'), true);
+          this.addSiteNotice('error', $.i18n('param-error-1', moment(this.config.minDate).format(this.dateFormat)), $.i18n('invalid-params'), true);
           return false;
         } else if (startDate > endDate) {
-          this.addSiteNotice('danger', $.i18n('param-error-2'), $.i18n('invalid-params'), true);
+          this.addSiteNotice('error', $.i18n('param-error-2'), $.i18n('invalid-params'), true);
           return false;
         }
 
@@ -3340,7 +3393,7 @@ var Pv = function (_PvConfig) {
 
       this.clearMessages();
       errors.forEach(function (error) {
-        _this9.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>: <code>' + error + '</code>');
+        _this9.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>: <code>' + error + '</code>', 'error');
       });
 
       if (this.debug) {
@@ -3356,12 +3409,12 @@ var Pv = function (_PvConfig) {
           }
         }).done(function (data) {
           if (data && data.result && data.result.objectName) {
-            _this9.writeMessage($.i18n('error-please-report', _this9.getBugReportURL(data.result.objectName)));
+            _this9.writeMessage($.i18n('error-please-report', _this9.getBugReportURL(data.result.objectName)), 'error');
           } else {
-            _this9.writeMessage($.i18n('error-please-report', _this9.getBugReportURL()));
+            _this9.writeMessage($.i18n('error-please-report', _this9.getBugReportURL()), 'error');
           }
         }).fail(function () {
-          _this9.writeMessage($.i18n('error-please-report', _this9.getBugReportURL()));
+          _this9.writeMessage($.i18n('error-please-report', _this9.getBugReportURL()), 'error');
         });
       }
     }
@@ -3406,7 +3459,7 @@ var Pv = function (_PvConfig) {
 
       this.timeout = setTimeout(function (err) {
         _this10.resetView();
-        _this10.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>:\n        ' + $.i18n('error-timed-out') + '\n        ' + $.i18n('error-please-report', _this10.getBugReportURL()) + '\n      ', true);
+        _this10.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>:\n        ' + $.i18n('error-timed-out') + '\n        ' + $.i18n('error-please-report', _this10.getBugReportURL()) + '\n      ', 'error');
       }, 20 * 1000);
     }
 
@@ -3508,14 +3561,14 @@ var Pv = function (_PvConfig) {
           valid = false;
 
       if (multilingual && !this.isMultilangProject()) {
-        this.writeMessage($.i18n('invalid-lang-project', '<a href=\'//' + project.escape() + '\'>' + project.escape() + '</a>'), true);
+        this.writeMessage($.i18n('invalid-lang-project', '<a href=\'//' + project.escape() + '\'>' + project.escape() + '</a>'), 'warning');
         project = projectInput.dataset.value;
       } else if (siteDomains.includes(project)) {
         this.clearMessages();
         this.updateInterAppLinks();
         valid = true;
       } else {
-        this.writeMessage($.i18n('invalid-project', '<a href=\'//' + project.escape() + '\'>' + project.escape() + '</a>'), true);
+        this.writeMessage($.i18n('invalid-project', '<a href=\'//' + project.escape() + '\'>' + project.escape() + '</a>'), 'warning');
         project = projectInput.dataset.value;
       }
 
@@ -3527,17 +3580,18 @@ var Pv = function (_PvConfig) {
     /**
      * Writes message just below the chart
      * @param {string} message - message to write
-     * @param {boolean} clear - whether to clear any existing messages
+     * @param {Number} timeout - num seconds to show
      * @returns {jQuery} - jQuery object of message container
      */
 
   }, {
     key: 'writeMessage',
-    value: function writeMessage(message, clear) {
-      if (clear) {
-        this.clearMessages();
-      }
-      return $('.message-container').append('<div class=\'error-message\'>' + message + '</div>');
+    value: function writeMessage(message) {
+      var level = arguments.length <= 1 || arguments[1] === undefined ? 'warning' : arguments[1];
+      var timeout = arguments.length <= 2 || arguments[2] === undefined ? 5000 : arguments[2];
+
+      toastr.options.timeOut = timeout;
+      toastr[level](message);
     }
   }, {
     key: 'dateFormat',
@@ -3609,6 +3663,14 @@ var PvConfig = function () {
     _classCallCheck(this, PvConfig);
 
     var self = this;
+    var formatXAxisTick = function formatXAxisTick(value) {
+      var dayOfWeek = moment(value, _this.dateFormat).weekday();
+      if (dayOfWeek % 7) {
+        return value;
+      } else {
+        return '• ' + value;
+      }
+    };
 
     this.config = {
       apiLimit: 5000,
@@ -3627,13 +3689,8 @@ var PvConfig = function () {
               }],
               xAxes: [{
                 ticks: {
-                  callback: function callback(value, index) {
-                    var dayOfWeek = moment(value, _this.dateFormat).weekday();
-                    if (dayOfWeek % 7) {
-                      return value;
-                    } else {
-                      return '• ' + value;
-                    }
+                  callback: function callback(value) {
+                    return formatXAxisTick(value);
                   }
                 }
               }]
@@ -3672,7 +3729,12 @@ var PvConfig = function () {
               }],
               xAxes: [{
                 barPercentage: 1.0,
-                categoryPercentage: 0.85
+                categoryPercentage: 0.85,
+                ticks: {
+                  callback: function callback(value) {
+                    return formatXAxisTick(value);
+                  }
+                }
               }]
             },
             legendCallback: function legendCallback(chart) {
@@ -4824,7 +4886,7 @@ var templates = {
     var dataList = function dataList(entry) {
       var markup = '';
 
-      var protectionList = entry.protection || [{ type: 'edit', level: 'none' }];
+      var protectionList = entry.protection && entry.protection.length ? entry.protection : [{ type: 'edit', level: 'none' }];
 
       var infoHash = {
         'Pageviews': {
@@ -4836,6 +4898,7 @@ var templates = {
           'Editors': scope.formatNumber(entry.num_users)
         },
         'Page information': {
+          'Size': scope.formatNumber(entry.length),
           'Protection': protectionList.find(function (prot) {
             return prot.type === 'edit';
           }).level,
@@ -4846,7 +4909,9 @@ var templates = {
       for (var block in infoHash) {
         markup += '<div class=\'legend-block\'><h5>' + block + '</h5><hr/>';
         for (var key in infoHash[block]) {
-          markup += '\n            <div class="linear-legend--counts">\n              ' + key + ':\n              <span class=\'pull-right\'>\n                ' + infoHash[block][key] + '\n              </span>\n            </div>';
+          var value = infoHash[block][key];
+          if (!value) continue;
+          markup += '\n            <div class="linear-legend--counts">\n              ' + key + ':\n              <span class=\'pull-right\'>\n                ' + value + '\n              </span>\n            </div>';
         }
         markup += '</div>';
       }
@@ -4870,7 +4935,7 @@ var templates = {
 
     for (var i = 0; i < datasets.length; i++) {
       var _pageInfo = Object.assign({}, datasets[i], scope.pageInfo[datasets[i].label]);
-      markup += '\n        <span class="linear-legend">\n          <div class="linear-legend--label" style="background-color:' + scope.rgba(_pageInfo.color, 0.8) + '">\n            <span class=\'pull-right remove-page glyphicon glyphicon-remove\' data-article=' + _pageInfo.title + ' title=\'Remove page\'></span>\n            <a href="' + scope.getPageURL(_pageInfo.label) + '" target="_blank">' + _pageInfo.label + '</a>\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.sum) + '\n            </span>\n            Pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.average) + '/' + $.i18n('day') + '\n            </span>\n            Avg pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.num_edits) + '\n            </span>\n            Edits:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.num_users) + '\n            </span>\n            Editors:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.length) + '\n            </span>\n            Size:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.watchers) + '\n            </span>\n            Watchers:\n          </div>\n          <div class="linear-legend--links">\n            <a href="' + scope.getLangviewsURL(_pageInfo.label) + '" target="_blank">' + $.i18n('all-languages') + '</a>\n            &bullet;\n            <a href="' + scope.getRedirectviewsURL(_pageInfo.label) + '" target="_blank">' + $.i18n('redirects') + '</a>\n          </div>\n        </span>\n      ';
+      markup += '\n        <div class="linear-legend">\n          <div class="linear-legend--label" style="background-color:' + scope.rgba(_pageInfo.color, 0.8) + '">\n            <span class=\'pull-right remove-page glyphicon glyphicon-remove\' data-article=' + _pageInfo.title + ' title=\'Remove page\'></span>\n            <a href="' + scope.getPageURL(_pageInfo.label) + '" target="_blank">' + _pageInfo.label + '</a>\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.sum) + '\n            </span>\n            Pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.average) + '/' + $.i18n('day') + '\n            </span>\n            Avg pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.num_edits) + '\n            </span>\n            Edits:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.num_users) + '\n            </span>\n            Editors:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.length) + '\n            </span>\n            Size:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.watchers) + '\n            </span>\n            Watchers:\n          </div>\n          <div class="linear-legend--links">\n            <a href="' + scope.getLangviewsURL(_pageInfo.label) + '" target="_blank">' + $.i18n('all-languages') + '</a>\n            &bullet;\n            <a href="' + scope.getRedirectviewsURL(_pageInfo.label) + '" target="_blank">' + $.i18n('redirects') + '</a>\n          </div>\n        </div>\n      ';
     }
     return markup += '</div>';
   },

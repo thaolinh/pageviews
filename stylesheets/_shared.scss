@@ -9,6 +9,30 @@ body {
   overflow-x: hidden;
 }
 
+.top-nav {
+  border-bottom: 1px solid $bootstrap-dark-gray;
+  height: 43px;
+  line-height: 43px;
+
+  .nav-tabs {
+    border-bottom: 0;
+    display: inline-block;
+  }
+
+  &::before {
+    background: url('images/logo.svg') no-repeat;
+    background-size: 36px;
+    bottom: 2px;
+    content: '';
+    display: inline-block;
+    height: 36px;
+    margin-left: 4px;
+    margin-right: 6px;
+    position: relative;
+    width: 36px;
+  }
+}
+
 .nav-tabs {
   .active a {
     background: transparent !important;
@@ -16,16 +40,10 @@ body {
   }
 }
 
-.nav-buttons {
-  padding: 6px;
-
-  > * {
-    margin-right: 6px;
-
-    &:last-child {
-      margin: 0;
-    }
-  }
+.nav-buttons > * {
+  margin-right: 6px;
+  position: relative;
+  bottom: 1px;
 }
 
 .site-header {

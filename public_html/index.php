@@ -72,22 +72,6 @@
             </option>
           </select>
         </div>
-        <div class="chart-specific">
-          <label class="logarithmic-scale">
-            <input class="logarithmic-scale-option" type="checkbox">
-            <?php echo $I18N->msg( 'logarithmic-scale' ); ?>
-          </label>
-        </div>
-        <div class="chart-specific">
-          <label class="begin-at-zero">
-            <input class="begin-at-zero-option" type="checkbox">
-            <?php echo $I18N->msg( 'begin-at-zero' ); ?>
-          </label>
-        </div>
-        <div>
-          <button class="btn btn-default btn-sm btn-chart-type chart-specific js-test-change-chart" data-target="#chart-type-modal" data-toggle="modal"><span class="glyphicon glyphicon-th"></span>
-          <?php echo $I18N->msg( 'change-chart' ); ?></button>
-        </div>
       </div>
     </aside>
     <main class="col-lg-8">

@@ -8,10 +8,12 @@ module.exports = function(grunt) {
     'vendor/javascripts/jquery.min.js',
     'public_html/jquery.i18n.js',
     'vendor/javascripts/moment.min.js',
-    'vendor/javascripts/bootstrap.min.js'
+    'vendor/javascripts/bootstrap.min.js',
+    'vendor/javascripts/toastr.min.js'
   ];
   const coreCSSDependencies = [
-    'vendor/stylesheets/bootstrap.min.css'
+    'vendor/stylesheets/bootstrap.min.css',
+    'vendor/stylesheets/toastr.min.css'
   ];
   const apps = ['pageviews', 'topviews', 'langviews', 'siteviews', 'massviews', 'redirectviews', 'meta'];
 

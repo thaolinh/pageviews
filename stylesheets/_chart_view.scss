@@ -55,19 +55,17 @@
   background: $white;
   border: solid 1px $gray;
   border-radius: 5px;
-  float: left;
   line-height: 15px;
   margin-bottom: 6px;
-  margin-right: 6px;
   overflow: hidden; // to make --label have the same border-radius
-  width: calc(100% / 3 - 4px);
-
-  &:nth-child(3n) {
-    margin: 0;
-  }
+  width: 100%;
 
   a {
     float: none;
+  }
+
+  .linear-legend--counts {
+    padding: 0 5px;
   }
 }
 
@@ -76,6 +74,7 @@
 }
 
 .linear-legend--label {
+  margin-bottom: 5px;
   padding: 5px 10px;
   width: 100%;
 }

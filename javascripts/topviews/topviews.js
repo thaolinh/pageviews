@@ -306,7 +306,7 @@ class TopViews extends Pv {
 
     // if less than min, throw error (since this is a common request)
     if (date < this.config.minDate.toDate()) {
-      this.addSiteNotice('danger',
+      this.addSiteNotice('error',
         // use super.dateFormat since this is for moment, not for our datepicker
         $.i18n('param-error-1', moment(this.config.minDate).format(super.dateFormat)),
         $.i18n('invalid-params'),

@@ -35,19 +35,37 @@ body {
   overflow-x: hidden;
 }
 
+.top-nav {
+  border-bottom: 1px solid #ddd;
+  height: 43px;
+  line-height: 43px;
+}
+.top-nav .nav-tabs {
+  border-bottom: 0;
+  display: inline-block;
+}
+.top-nav::before {
+  background: url("images/logo.svg") no-repeat;
+  background-size: 36px;
+  bottom: 2px;
+  content: '';
+  display: inline-block;
+  height: 36px;
+  margin-left: 4px;
+  margin-right: 6px;
+  position: relative;
+  width: 36px;
+}
+
 .nav-tabs .active a {
   background: transparent !important;
   border-color: transparent !important;
 }
 
-.nav-buttons {
-  padding: 6px;
-}
 .nav-buttons > * {
   margin-right: 6px;
-}
-.nav-buttons > *:last-child {
-  margin: 0;
+  position: relative;
+  bottom: 1px;
 }
 
 .site-header {
@@ -601,18 +619,16 @@ footer {
   background: #fff;
   border: solid 1px #ccc;
   border-radius: 5px;
-  float: left;
   line-height: 15px;
   margin-bottom: 6px;
-  margin-right: 6px;
   overflow: hidden;
-  width: calc(100% / 3 - 4px);
-}
-.linear-legend:nth-child(3n) {
-  margin: 0;
+  width: 100%;
 }
 .linear-legend a {
   float: none;
+}
+.linear-legend .linear-legend--counts {
+  padding: 0 5px;
 }
 
 .linear-legend--totals {
@@ -620,6 +636,7 @@ footer {
 }
 
 .linear-legend--label {
+  margin-bottom: 5px;
   padding: 5px 10px;
   width: 100%;
 }

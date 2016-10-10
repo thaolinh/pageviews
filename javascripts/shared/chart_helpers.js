@@ -50,12 +50,12 @@ const ChartHelpers = superclass => class extends superclass {
         this.setLocalStorage('pageviews-chart-preference', this.chartType);
       }
 
-      this.isChartApp() ? this.processInput() : this.renderData();
+      this.isChartApp() ? this.updateChart(this.pageViewsData) : this.renderData();
     });
 
     $(this.config.logarithmicCheckbox).on('click', () => {
       this.autoLogDetection = 'false';
-      this.isChartApp() ? this.processInput(true) : this.renderData();
+      this.isChartApp() ? this.updateChart(this.pageViewsData) : this.renderData();
     });
 
     /**
@@ -71,7 +71,7 @@ const ChartHelpers = superclass => class extends superclass {
     }
 
     $('.begin-at-zero-option').on('click', () => {
-      this.isChartApp() ? this.processInput(true) : this.renderData();
+      this.isChartApp() ? this.updateChart(this.pageViewsData) : this.renderData();
     });
 
     /** chart download listeners */
@@ -365,6 +365,7 @@ const ChartHelpers = superclass => class extends superclass {
         }
       }).always(() => {
         if (++count === totalRequestCount) {
+          this.pageViewsData = xhrData;
           dfd.resolve(xhrData);
 
           if (failedEntities.length) {

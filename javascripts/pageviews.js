@@ -18,6 +18,7 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
 
     this.pageInfo = false; /** let's us know if we've gotten the page info from API yet */
     this.specialRange = null;
+    this.initialQuery = false;
 
     /**
      * Select2 library prints "Uncaught TypeError: XYZ is not a function" errors
@@ -121,7 +122,7 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
    */
   popParams() {
     /** show loading indicator and add error handling for timeouts */
-    setTimeout(this.startSpinny); // use setTimeout to force rendering threads to catch up
+    setTimeout(this.startSpinny.bind(this)); // use setTimeout to force rendering threads to catch up
 
     let params = this.validateParams(
       this.parseQueryString('pages')
@@ -137,32 +138,18 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
     this.resetSelect2();
 
     /**
-     * Normalizes the page names then sets the Select2 defaults,
-     *   which triggers the Select2 listener and renders the chart
+     * Sets the Select2 defaults, which triggers the Select2 listener and calls this.processInput
      * @param {Array} pages - pages to query
      * @return {null} nothing
      */
     const getPageInfoAndSetDefaults = pages => {
-      if (this.pageInfo) {
-        pages = this.underscorePageNames(pages);
-        this.setSelect2Defaults(pages);
-      } else {
-        this.getPageInfo(pages).then(data => {
-          this.pageInfo = data;
-          this.getEditData(pages).done(editData => {
-            for (let page in editData.pages) {
-              Object.assign(this.pageInfo[page.descore()], editData.pages[page]);
-            }
-            this.setSelect2Defaults(
-              this.underscorePageNames(Object.keys(this.pageInfo))
-            );
-          }).fail(() => {
-            this.setSelect2Defaults(
-              this.underscorePageNames(Object.keys(this.pageInfo))
-            );
-          });
-        });
-      }
+      this.getPageAndEditInfo(pages).then(pageInfo => {
+        this.initialQuery = true;
+        const normalizedPageNames = Object.keys(pageInfo);
+        this.setSelect2Defaults(
+          this.underscorePageNames(normalizedPageNames)
+        );
+      });
     };
 
     // set up default pages if none were passed in
@@ -377,7 +364,44 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
     this.destroyChart();
     this.startSpinny(); // show spinny and capture against fatal errors
 
-    this.getPageViewsData(entities).done(xhrData => this.updateChart(xhrData));
+    // We've already gotten data about the intial set of pages
+    // This is because we need any page names given to be normalized when the app first loads
+    if (this.initialQuery) {
+      this.getPageViewsData(entities).done(xhrData => this.updateChart(xhrData));
+      // set back to false so we get page and edit info for any newly entered pages
+      this.initialQuery = false;
+    } else {
+      this.getPageAndEditInfo(entities).then(() => {
+        this.getPageViewsData(entities).done(xhrData => this.updateChart(xhrData));
+      });
+    }
+  }
+
+  /**
+   * Get page info and editing info of given pages.
+   * Also sets this.pageInfo
+   * @param  {Array} pages - page names
+   * @return {Deferred} Promise resolving with this.pageInfo
+   */
+  getPageAndEditInfo(pages) {
+    const dfd = $.Deferred();
+
+    this.getPageInfo(pages).done(data => {
+      this.pageInfo = data;
+      // use Object.keys(data) to get normalized page names
+      this.getEditData(Object.keys(data)).done(editData => {
+        for (let page in editData.pages) {
+          Object.assign(this.pageInfo[page.descore()], editData.pages[page]);
+        }
+        dfd.resolve(this.pageInfo);
+      }).fail(() => {
+        dfd.resolve(this.pageInfo); // treat as if successful, simply won't show the data
+      });
+    }).fail(() => {
+      dfd.resolve({}); // same, simply won't show the data if it failed
+    });
+
+    return dfd;
   }
 
   /**
@@ -402,7 +426,10 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
       document.location = `/massviews?overflow=1&${$.param(params)}&source=pagepile&target=${pileData.pile.id}`;
     }).fail(() => {
       // just grab first 10 pages and throw an error
-      this.writeMessage($.i18n('auto-pagepile-error', 'PagePile', 10));
+      this.writeMessage(
+        $.i18n('auto-pagepile-error', 'PagePile', 10),
+        'error'
+      );
       dfd.resolve(pages.slice(0, 10));
     });
 

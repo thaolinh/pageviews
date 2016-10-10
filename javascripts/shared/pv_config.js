@@ -15,6 +15,14 @@ const siteDomains = Object.keys(siteMap).map(key => siteMap[key]);
 class PvConfig {
   constructor() {
     let self = this;
+    const formatXAxisTick = value => {
+      const dayOfWeek = moment(value, this.dateFormat).weekday();
+      if (dayOfWeek % 7) {
+        return value;
+      } else {
+        return `• ${value}`;
+      }
+    };
 
     this.config = {
       apiLimit: 5000,
@@ -31,13 +39,8 @@ class PvConfig {
               }],
               xAxes: [{
                 ticks: {
-                  callback: (value, index) => {
-                    const dayOfWeek = moment(value, this.dateFormat).weekday();
-                    if (dayOfWeek % 7) {
-                      return value;
-                    } else {
-                      return `• ${value}`;
-                    }
+                  callback: value => {
+                    return formatXAxisTick(value);
                   }
                 }
               }]
@@ -72,7 +75,12 @@ class PvConfig {
               }],
               xAxes: [{
                 barPercentage: 1.0,
-                categoryPercentage: 0.85
+                categoryPercentage: 0.85,
+                ticks: {
+                  callback: value => {
+                    return formatXAxisTick(value);
+                  }
+                }
               }]
             },
             legendCallback: chart => this.config.linearLegend(chart.data.datasets, self),

@@ -67,11 +67,30 @@ class Pv extends PvConfig {
     $.i18n({
       locale: i18nLang
     }).load(messagesToLoad).then(this.initialize.bind(this));
+
+    /** set up toastr config. The duration may be overriden later */
+    toastr.options = {
+      closeButton: true,
+      debug: location.host === 'localhost',
+      newestOnTop: false,
+      progressBar: false,
+      positionClass: 'toast-bottom-center',
+      preventDuplicates: false,
+      onclick: null,
+      showDuration: '300',
+      hideDuration: '1000',
+      timeOut: '5000',
+      extendedTimeOut: '1000',
+      showEasing: 'swing',
+      hideEasing: 'linear',
+      showMethod: 'fadeIn',
+      hideMethod: 'fadeOut'
+    };
   }
 
   /**
    * Add a site notice (Bootstrap alert)
-   * @param {String} level - one of 'success', 'info', 'warning' or 'danger'
+   * @param {String} level - one of 'success', 'info', 'warning' or 'error'
    * @param {String} message - message to show
    * @param {String} [title] - will appear in bold and in front of the message
    * @param {Boolean} [dismissable] - whether or not to add a X
@@ -94,8 +113,10 @@ class Pv extends PvConfig {
       dismissable = '';
     }
 
-    $('.site-notice').append(
-      `<div class='alert alert-${level}${dismissable}'>${markup}</div>`
+    this.writeMessage(
+      markup,
+      level,
+      dismissable ? 10000 : 0
     );
   }
 
@@ -107,7 +128,7 @@ class Pv extends PvConfig {
   addInvalidParamNotice(param) {
     const docLink = `<a href='/${this.app}/url_structure'>${$.i18n('documentation')}</a>`;
     this.addSiteNotice(
-      'danger',
+      'error',
       $.i18n('param-error-3', param, docLink),
       $.i18n('invalid-params'),
       true
@@ -148,14 +169,14 @@ class Pv extends PvConfig {
 
       // check if they are outside the valid range or if in the wrong order
       if (startDate < this.config.minDate || endDate < this.config.minDate) {
-        this.addSiteNotice('danger',
+        this.addSiteNotice('error',
           $.i18n('param-error-1', moment(this.config.minDate).format(this.dateFormat)),
           $.i18n('invalid-params'),
           true
         );
         return false;
       } else if (startDate > endDate) {
-        this.addSiteNotice('danger', $.i18n('param-error-2'), $.i18n('invalid-params'), true);
+        this.addSiteNotice('error', $.i18n('param-error-2'), $.i18n('invalid-params'), true);
         return false;
       }
 
@@ -1260,7 +1281,8 @@ class Pv extends PvConfig {
     this.clearMessages();
     errors.forEach(error => {
       this.writeMessage(
-        `<strong>${$.i18n('fatal-error')}</strong>: <code>${error}</code>`
+        `<strong>${$.i18n('fatal-error')}</strong>: <code>${error}</code>`,
+        'error'
       );
     });
 
@@ -1284,12 +1306,21 @@ class Pv extends PvConfig {
         }
       }).done(data => {
         if (data && data.result && data.result.objectName) {
-          this.writeMessage($.i18n('error-please-report', this.getBugReportURL(data.result.objectName)));
+          this.writeMessage(
+            $.i18n('error-please-report', this.getBugReportURL(data.result.objectName)),
+            'error'
+          );
         } else {
-          this.writeMessage($.i18n('error-please-report', this.getBugReportURL()));
+          this.writeMessage(
+            $.i18n('error-please-report', this.getBugReportURL()),
+            'error'
+          );
         }
       }).fail(() => {
-        this.writeMessage($.i18n('error-please-report', this.getBugReportURL()));
+        this.writeMessage(
+          $.i18n('error-please-report', this.getBugReportURL()),
+          'error'
+        );
       });
     }
   }
@@ -1329,7 +1360,7 @@ class Pv extends PvConfig {
       this.writeMessage(`<strong>${$.i18n('fatal-error')}</strong>:
         ${$.i18n('error-timed-out')}
         ${$.i18n('error-please-report', this.getBugReportURL())}
-      `, true);
+      `, 'error');
     }, 20 * 1000);
   }
 
@@ -1412,7 +1443,7 @@ class Pv extends PvConfig {
     if (multilingual && !this.isMultilangProject()) {
       this.writeMessage(
         $.i18n('invalid-lang-project', `<a href='//${project.escape()}'>${project.escape()}</a>`),
-        true
+        'warning'
       );
       project = projectInput.dataset.value;
     } else if (siteDomains.includes(project)) {
@@ -1422,7 +1453,7 @@ class Pv extends PvConfig {
     } else {
       this.writeMessage(
         $.i18n('invalid-project', `<a href='//${project.escape()}'>${project.escape()}</a>`),
-        true
+        'warning'
       );
       project = projectInput.dataset.value;
     }
@@ -1435,16 +1466,12 @@ class Pv extends PvConfig {
   /**
    * Writes message just below the chart
    * @param {string} message - message to write
-   * @param {boolean} clear - whether to clear any existing messages
+   * @param {Number} timeout - num seconds to show
    * @returns {jQuery} - jQuery object of message container
    */
-  writeMessage(message, clear) {
-    if (clear) {
-      this.clearMessages();
-    }
-    return $('.message-container').append(
-      `<div class='error-message'>${message}</div>`
-    );
+  writeMessage(message, level = 'warning', timeout = 5000) {
+    toastr.options.timeOut = timeout;
+    toastr[level](message);
   }
 }
 
