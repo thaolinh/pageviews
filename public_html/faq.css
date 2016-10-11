@@ -19,14 +19,13 @@
   border: 3px solid #ccc;
   border-radius: 50%;
   border-top-color: transparent;
-  bottom: 0;
   content: '';
   height: 60px;
   left: 0;
   margin: auto;
   position: absolute;
   right: 0;
-  top: 0;
+  top: 40px;
   width: 60px;
 }
 
@@ -37,23 +36,23 @@ body {
 
 .top-nav {
   border-bottom: 1px solid #ddd;
-  height: 43px;
-  line-height: 43px;
+}
+.top-nav > * {
+  vertical-align: middle;
 }
 .top-nav .nav-tabs {
   border-bottom: 0;
   display: inline-block;
 }
-.top-nav::before {
+.top-nav .home-link {
   background: url("images/logo.svg") no-repeat;
   background-size: 36px;
-  bottom: 2px;
-  content: '';
   display: inline-block;
   height: 36px;
   margin-left: 4px;
   margin-right: 6px;
   position: relative;
+  top: 1px;
   width: 36px;
 }
 
@@ -63,9 +62,10 @@ body {
 }
 
 .nav-buttons > * {
-  margin-right: 6px;
-  position: relative;
   bottom: 1px;
+  margin-right: 6px;
+  margin-top: 7px;
+  position: relative;
 }
 
 .site-header {
@@ -115,14 +115,13 @@ select {
   border: 3px solid #ccc;
   border-radius: 50%;
   border-top-color: transparent;
-  bottom: 0;
   content: '';
   height: 60px;
   left: 0;
   margin: auto;
   position: absolute;
   right: 0;
-  top: 0;
+  top: 40px;
   width: 60px;
 }
 .rtl .container {
@@ -457,4 +456,17 @@ footer {
 
 .glyphicon-print {
   margin-right: 4px;
+}
+
+#toast-container > .toast {
+  max-width: 500px !important;
+  opacity: 1 !important;
+  width: auto !important;
+}
+#toast-container > .toast a {
+  font-weight: bold;
+}
+#toast-container > .toast .toast-close-button {
+  right: -.2em;
+  top: -.2em;
 }

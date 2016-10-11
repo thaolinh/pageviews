@@ -1,4 +1,5 @@
 <nav class="top-nav">
+  <a class="home-link" href="<?php echo '/pageviews'; ?>"></a>
   <span class="pull-right nav-buttons">
     <button class="btn btn-default btn-sm btn-settings js-test-settings" data-target="#settings-modal" data-toggle="modal">
       <span class="glyphicon glyphicon-wrench"></span>

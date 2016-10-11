@@ -16,6 +16,7 @@ const ChartHelpers = superclass => class extends superclass {
 
     this.chartObj = null;
     this.prevChartType = null;
+    this.autoChartType = true; // will become false when they manually change the chart type
 
     /** ensure we have a valid chart type in localStorage, result of Chart.js 1.0 to 2.0 migration */
     const storedChartType = this.getFromLocalStorage('pageviews-chart-preference');
@@ -42,6 +43,7 @@ const ChartHelpers = superclass => class extends superclass {
     /** changing of chart types */
     $('.modal-chart-type a').on('click', e => {
       this.chartType = $(e.currentTarget).data('type');
+      this.autoChartType = false;
 
       $('.logarithmic-scale').toggle(this.isLogarithmicCapable());
       $('.begin-at-zero').toggle(this.config.linearCharts.includes(this.chartType));
@@ -219,7 +221,7 @@ const ChartHelpers = superclass => class extends superclass {
    * @returns {object} - ready for chart rendering
    */
   getCircularData(data, entity, index) {
-    const values = data.items.map(elem => this.isPageviews() ? elem.views : elem.devices),
+    const values = data.map(elem => this.isPageviews() ? elem.views : elem.devices),
       color = this.config.colors[index],
       value = values.reduce((a, b) => a + b),
       average = Math.round(value / values.length);
@@ -241,7 +243,7 @@ const ChartHelpers = superclass => class extends superclass {
    * @returns {object} - ready for chart rendering
    */
   getLinearData(data, entity, index) {
-    const values = data.items.map(elem => this.isPageviews() ? elem.views : elem.devices),
+    const values = data.map(elem => this.isPageviews() ? elem.views : elem.devices),
       sum = values.reduce((a, b) => a + b),
       average = Math.round(sum / values.length),
       max = Math.max(...values),
@@ -318,12 +320,7 @@ const ChartHelpers = superclass => class extends superclass {
         try {
           successData = this.fillInZeros(successData, startDate, endDate);
 
-          /** Build the article's dataset. */
-          if (this.config.linearCharts.includes(this.chartType)) {
-            xhrData.datasets.push(this.getLinearData(successData, entity, index));
-          } else {
-            xhrData.datasets.push(this.getCircularData(successData, entity, index));
-          }
+          xhrData.datasets.push(successData.items);
 
           /** fetch the labels for the x-axis on success if we haven't already */
           if (successData.items && !xhrData.labels.length) {
@@ -563,18 +560,27 @@ const ChartHelpers = superclass => class extends superclass {
       $('.multi-page-chart-node').show();
     }
 
+    /** preserve order of datasets due to asyn calls */
+    let sortedDatasets = new Array(xhrData.entities.length);
+    xhrData.datasets.forEach((dataset, index) => {
+      const label = xhrData.entities[index];
+
+      /** Build the article's dataset. */
+      if (this.config.linearCharts.includes(this.chartType)) {
+        dataset = this.getLinearData(dataset, label, index);
+      } else {
+        dataset = this.getCircularData(dataset, label, index);
+      }
+
+      if (this.isLogarithmic()) dataset.data = dataset.data.map(view => view || null);
+      sortedDatasets[index] = dataset;
+    });
+
     if (this.autoLogDetection === 'true') {
-      const shouldBeLogarithmic = this.shouldBeLogarithmic(xhrData.datasets.map(set => set.data));
+      const shouldBeLogarithmic = this.shouldBeLogarithmic(sortedDatasets.map(set => set.data));
       $(this.config.logarithmicCheckbox).prop('checked', shouldBeLogarithmic);
       $('.begin-at-zero').toggleClass('disabled', shouldBeLogarithmic);
     }
-
-    /** preserve order of datasets due to asyn calls */
-    let sortedDatasets = new Array(xhrData.entities.length);
-    xhrData.datasets.forEach(dataset => {
-      if (this.isLogarithmic()) dataset.data = dataset.data.map(view => view || null);
-      sortedDatasets[xhrData.entities.indexOf(dataset.label.score())] = dataset;
-    });
 
     let options = Object.assign(
       {scales: {}},

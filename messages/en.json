@@ -94,6 +94,7 @@
 	"select2-loading": "Loading more results…",
 	"select2-max-items": "You can only select $1 items",
 	"select2-no-results": "No results found",
+	"massviews-notice": "To view more than $1 pages, try $2.",
 	"help-translate": "Help translate",
 	"fatal-error": "Fatal error",
 	"error-timed-out": "Operation timed out.",

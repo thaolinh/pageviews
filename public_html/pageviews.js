@@ -357,6 +357,8 @@ var PageViews = function (_mix$with) {
   }, {
     key: 'setupSelect2',
     value: function setupSelect2() {
+      var _this3 = this;
+
       var $select2Input = $(this.config.select2Input);
 
       var params = {
@@ -369,6 +371,14 @@ var PageViews = function (_mix$with) {
 
       $select2Input.select2(params);
       $select2Input.on('change', this.processInput.bind(this));
+      $select2Input.on('select2:open', function (e) {
+        if ($(e.target).val().length === 10) {
+          $('.select2-search__field').one('keyup', function () {
+            var message = $.i18n('massviews-notice', 10, '<a href=\'/massviews/\'>' + $.i18n('massviews') + '</a>');
+            _this3.writeMessage(message, 'info', 10000);
+          });
+        }
+      });
     }
 
     /**
@@ -379,7 +389,7 @@ var PageViews = function (_mix$with) {
   }, {
     key: 'getArticleSelectorAjax',
     value: function getArticleSelectorAjax() {
-      var _this3 = this;
+      var _this4 = this;
 
       if (this.autocomplete !== 'no_autocomplete') {
         /**
@@ -393,7 +403,7 @@ var PageViews = function (_mix$with) {
           delay: 200,
           jsonpCallback: 'articleSuggestionCallback',
           data: function data(search) {
-            return _this3.getSearchParams(search.term);
+            return _this4.getSearchParams(search.term);
           },
           processResults: this.processSearchResults.bind(this),
           cache: true
@@ -441,7 +451,7 @@ var PageViews = function (_mix$with) {
   }, {
     key: 'processInput',
     value: function processInput(force) {
-      var _this4 = this;
+      var _this5 = this;
 
       this.pushParams();
 
@@ -471,14 +481,14 @@ var PageViews = function (_mix$with) {
       // This is because we need any page names given to be normalized when the app first loads
       if (this.initialQuery) {
         this.getPageViewsData(entities).done(function (xhrData) {
-          return _this4.updateChart(xhrData);
+          return _this5.updateChart(xhrData);
         });
         // set back to false so we get page and edit info for any newly entered pages
         this.initialQuery = false;
       } else {
         this.getPageAndEditInfo(entities).then(function () {
-          _this4.getPageViewsData(entities).done(function (xhrData) {
-            return _this4.updateChart(xhrData);
+          _this5.getPageViewsData(entities).done(function (xhrData) {
+            return _this5.updateChart(xhrData);
           });
         });
       }
@@ -494,20 +504,20 @@ var PageViews = function (_mix$with) {
   }, {
     key: 'getPageAndEditInfo',
     value: function getPageAndEditInfo(pages) {
-      var _this5 = this;
+      var _this6 = this;
 
       var dfd = $.Deferred();
 
       this.getPageInfo(pages).done(function (data) {
-        _this5.pageInfo = data;
+        _this6.pageInfo = data;
         // use Object.keys(data) to get normalized page names
-        _this5.getEditData(Object.keys(data)).done(function (editData) {
+        _this6.getEditData(Object.keys(data)).done(function (editData) {
           for (var page in editData.pages) {
-            Object.assign(_this5.pageInfo[page.descore()], editData.pages[page]);
+            Object.assign(_this6.pageInfo[page.descore()], editData.pages[page]);
           }
-          dfd.resolve(_this5.pageInfo);
+          dfd.resolve(_this6.pageInfo);
         }).fail(function () {
-          dfd.resolve(_this5.pageInfo); // treat as if successful, simply won't show the data
+          dfd.resolve(_this6.pageInfo); // treat as if successful, simply won't show the data
         });
       }).fail(function () {
         dfd.resolve({}); // same, simply won't show the data if it failed
@@ -526,7 +536,7 @@ var PageViews = function (_mix$with) {
   }, {
     key: 'massviewsRedirectWithPagePile',
     value: function massviewsRedirectWithPagePile(pages) {
-      var _this6 = this;
+      var _this7 = this;
 
       var dfd = $.Deferred();
 
@@ -538,12 +548,12 @@ var PageViews = function (_mix$with) {
           data: pages.join('\n')
         }
       }).success(function (pileData) {
-        var params = _this6.getParams();
+        var params = _this7.getParams();
         delete params.project;
         document.location = '/massviews?overflow=1&' + $.param(params) + '&source=pagepile&target=' + pileData.pile.id;
       }).fail(function () {
         // just grab first 10 pages and throw an error
-        _this6.writeMessage($.i18n('auto-pagepile-error', 'PagePile', 10), 'error');
+        _this7.writeMessage($.i18n('auto-pagepile-error', 'PagePile', 10), 'error');
         dfd.resolve(pages.slice(0, 10));
       });
 
@@ -605,6 +615,7 @@ var ChartHelpers = function ChartHelpers(superclass) {
 
       _this.chartObj = null;
       _this.prevChartType = null;
+      _this.autoChartType = true; // will become false when they manually change the chart type
 
       /** ensure we have a valid chart type in localStorage, result of Chart.js 1.0 to 2.0 migration */
       var storedChartType = _this.getFromLocalStorage('pageviews-chart-preference');
@@ -631,6 +642,7 @@ var ChartHelpers = function ChartHelpers(superclass) {
       /** changing of chart types */
       $('.modal-chart-type a').on('click', function (e) {
         _this.chartType = $(e.currentTarget).data('type');
+        _this.autoChartType = false;
 
         $('.logarithmic-scale').toggle(_this.isLogarithmicCapable());
         $('.begin-at-zero').toggle(_this.config.linearCharts.includes(_this.chartType));
@@ -838,7 +850,7 @@ var ChartHelpers = function ChartHelpers(superclass) {
       value: function getCircularData(data, entity, index) {
         var _this4 = this;
 
-        var values = data.items.map(function (elem) {
+        var values = data.map(function (elem) {
           return _this4.isPageviews() ? elem.views : elem.devices;
         }),
             color = this.config.colors[index],
@@ -869,7 +881,7 @@ var ChartHelpers = function ChartHelpers(superclass) {
       value: function getLinearData(data, entity, index) {
         var _this5 = this;
 
-        var values = data.items.map(function (elem) {
+        var values = data.map(function (elem) {
           return _this5.isPageviews() ? elem.views : elem.devices;
         }),
             sum = values.reduce(function (a, b) {
@@ -950,12 +962,7 @@ var ChartHelpers = function ChartHelpers(superclass) {
             try {
               successData = _this6.fillInZeros(successData, startDate, endDate);
 
-              /** Build the article's dataset. */
-              if (_this6.config.linearCharts.includes(_this6.chartType)) {
-                xhrData.datasets.push(_this6.getLinearData(successData, entity, index));
-              } else {
-                xhrData.datasets.push(_this6.getCircularData(successData, entity, index));
-              }
+              xhrData.datasets.push(successData.items);
 
               /** fetch the labels for the x-axis on success if we haven't already */
               if (successData.items && !xhrData.labels.length) {
@@ -1239,22 +1246,31 @@ var ChartHelpers = function ChartHelpers(superclass) {
           $('.multi-page-chart-node').show();
         }
 
+        /** preserve order of datasets due to asyn calls */
+        var sortedDatasets = new Array(xhrData.entities.length);
+        xhrData.datasets.forEach(function (dataset, index) {
+          var label = xhrData.entities[index];
+
+          /** Build the article's dataset. */
+          if (_this8.config.linearCharts.includes(_this8.chartType)) {
+            dataset = _this8.getLinearData(dataset, label, index);
+          } else {
+            dataset = _this8.getCircularData(dataset, label, index);
+          }
+
+          if (_this8.isLogarithmic()) dataset.data = dataset.data.map(function (view) {
+            return view || null;
+          });
+          sortedDatasets[index] = dataset;
+        });
+
         if (this.autoLogDetection === 'true') {
-          var shouldBeLogarithmic = this.shouldBeLogarithmic(xhrData.datasets.map(function (set) {
+          var shouldBeLogarithmic = this.shouldBeLogarithmic(sortedDatasets.map(function (set) {
             return set.data;
           }));
           $(this.config.logarithmicCheckbox).prop('checked', shouldBeLogarithmic);
           $('.begin-at-zero').toggleClass('disabled', shouldBeLogarithmic);
         }
-
-        /** preserve order of datasets due to asyn calls */
-        var sortedDatasets = new Array(xhrData.entities.length);
-        xhrData.datasets.forEach(function (dataset) {
-          if (_this8.isLogarithmic()) dataset.data = dataset.data.map(function (view) {
-            return view || null;
-          });
-          sortedDatasets[xhrData.entities.indexOf(dataset.label.score())] = dataset;
-        });
 
         var options = Object.assign({ scales: {} }, this.config.chartConfig[this.chartType].opts, this.config.globalChartOpts);
 
@@ -2077,7 +2093,7 @@ var Pv = function (_PvConfig) {
       newestOnTop: false,
       progressBar: false,
       positionClass: 'toast-bottom-center',
-      preventDuplicates: false,
+      preventDuplicates: true,
       onclick: null,
       showDuration: '300',
       hideDuration: '1000',
@@ -2108,14 +2124,6 @@ var Pv = function (_PvConfig) {
       title = title ? '<strong>' + title + '</strong> ' : '';
 
       var markup = title + message;
-
-      /** add relevant CSS class and dismiss link if dismissable */
-      if (dismissable) {
-        dismissable = ' alert-dismissable';
-        markup = '\n        <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n          <span aria-hidden="true">&times;</span>\n        </button>' + markup;
-      } else {
-        dismissable = '';
-      }
 
       this.writeMessage(markup, level, dismissable ? 10000 : 0);
     }
@@ -4929,7 +4937,7 @@ var templates = {
     }, 0);
     var markup = '';
 
-    markup = '<div class="linear-legend--totals">\n      <span class=\'pull-right\'>\n        ' + scope.formatNumber(total) + ' (' + scope.formatNumber(Math.round(total / scope.numDaysInRange())) + '/' + $.i18n('day') + ')\n      </span>\n      <strong>' + $.i18n('totals') + ':</strong>\n    </div>';
+    markup = '<div class="linear-legend--totals">\n      <div>\n        <strong>' + $.i18n('pageviews') + ':</strong>\n        <span class=\'pull-right\'>\n          ' + scope.formatNumber(total) + '\n        </span>\n      </div>\n      <div>\n        <strong>Avg pageviews:</strong>\n        <span class=\'pull-right\'>\n          ' + scope.formatNumber(Math.round(total / scope.numDaysInRange())) + '/' + $.i18n('day') + '\n        </span>\n      </div>\n    </div>';
 
     markup += '<div class="linear-legends">';
 

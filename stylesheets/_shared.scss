@@ -11,24 +11,25 @@ body {
 
 .top-nav {
   border-bottom: 1px solid $bootstrap-dark-gray;
-  height: 43px;
-  line-height: 43px;
+
+  > * {
+    vertical-align: middle;
+  }
 
   .nav-tabs {
     border-bottom: 0;
     display: inline-block;
   }
 
-  &::before {
+  .home-link {
     background: url('images/logo.svg') no-repeat;
     background-size: 36px;
-    bottom: 2px;
-    content: '';
     display: inline-block;
     height: 36px;
     margin-left: 4px;
     margin-right: 6px;
     position: relative;
+    top: 1px;
     width: 36px;
   }
 }
@@ -41,9 +42,10 @@ body {
 }
 
 .nav-buttons > * {
-  margin-right: 6px;
-  position: relative;
   bottom: 1px;
+  margin-right: 6px;
+  margin-top: 7px;
+  position: relative;
 }
 
 .site-header {
@@ -297,4 +299,19 @@ footer {
 
 .glyphicon-print {
   margin-right: 4px;
+}
+
+#toast-container > .toast {
+  max-width: 500px !important;
+  opacity: 1 !important;
+  width: auto !important;
+
+  a {
+    font-weight: bold;
+  }
+
+  .toast-close-button {
+    right: -.2em;
+    top: -.2em;
+  }
 }

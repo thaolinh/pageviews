@@ -68,10 +68,18 @@ const templates = {
     let markup = '';
 
     markup = `<div class="linear-legend--totals">
-      <span class='pull-right'>
-        ${scope.formatNumber(total)} (${scope.formatNumber(Math.round(total / scope.numDaysInRange()))}/${$.i18n('day')})
-      </span>
-      <strong>${$.i18n('totals')}:</strong>
+      <div>
+        <strong>${$.i18n('pageviews')}:</strong>
+        <span class='pull-right'>
+          ${scope.formatNumber(total)}
+        </span>
+      </div>
+      <div>
+        <strong>Avg pageviews:</strong>
+        <span class='pull-right'>
+          ${scope.formatNumber(Math.round(total / scope.numDaysInRange()))}/${$.i18n('day')}
+        </span>
+      </div>
     </div>`;
 
     markup += '<div class="linear-legends">';

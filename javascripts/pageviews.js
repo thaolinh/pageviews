@@ -284,6 +284,18 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
 
     $select2Input.select2(params);
     $select2Input.on('change', this.processInput.bind(this));
+    $select2Input.on('select2:open', e => {
+      if ($(e.target).val().length === 10) {
+        $('.select2-search__field').one('keyup', () => {
+          const message = $.i18n(
+            'massviews-notice',
+            10,
+            `<a href='/massviews/'>${$.i18n('massviews')}</a>`
+          );
+          this.writeMessage(message, 'info', 10000);
+        });
+      }
+    });
   }
 
   /**

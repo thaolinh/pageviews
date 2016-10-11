@@ -75,7 +75,7 @@ class Pv extends PvConfig {
       newestOnTop: false,
       progressBar: false,
       positionClass: 'toast-bottom-center',
-      preventDuplicates: false,
+      preventDuplicates: true,
       onclick: null,
       showDuration: '300',
       hideDuration: '1000',
@@ -101,17 +101,6 @@ class Pv extends PvConfig {
     title = title ? `<strong>${title}</strong> ` : '';
 
     let markup = title + message;
-
-    /** add relevant CSS class and dismiss link if dismissable */
-    if (dismissable) {
-      dismissable = ' alert-dismissable';
-      markup = `
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>` + markup;
-    } else {
-      dismissable = '';
-    }
 
     this.writeMessage(
       markup,
