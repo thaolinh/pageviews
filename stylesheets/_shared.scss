@@ -301,17 +301,30 @@ footer {
   margin-right: 4px;
 }
 
-#toast-container > .toast {
-  max-width: 500px !important;
-  opacity: 1 !important;
-  width: auto !important;
+// #toast-container > div {
+//   // max-width: 500px;
+//   // opacity: 1;
 
-  a {
-    font-weight: bold;
-  }
+//   // a {
+//   //   color: $link;
+//   //   font-weight: bold;
+//   // }
 
-  .toast-close-button {
-    right: -.2em;
-    top: -.2em;
-  }
-}
+//   // &.toast-warning {
+//   //   background-color: $bootstrap-warning-bg;
+//   //   color: $bootstrap-warning-text;
+
+//   //   button {
+//   //     color: $bootstrap-warning-text;
+//   //   }
+//   // }
+
+//   // &.toast-error {
+//   //   background-color: $bootstrap-danger-bg;
+//   //   color: $bootstrap-danger-text;
+
+//   //   button {
+//   //     color: $bootstrap-danger-text;
+//   //   }
+//   // }
+// }

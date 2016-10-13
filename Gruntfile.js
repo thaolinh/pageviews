@@ -13,7 +13,7 @@ module.exports = function(grunt) {
   ];
   const coreCSSDependencies = [
     'vendor/stylesheets/bootstrap.min.css',
-    'vendor/stylesheets/toastr.min.css'
+    'vendor/stylesheets/toastr.css'
   ];
   const apps = ['pageviews', 'topviews', 'langviews', 'siteviews', 'massviews', 'redirectviews', 'meta'];
 

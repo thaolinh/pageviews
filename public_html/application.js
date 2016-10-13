@@ -3504,7 +3504,7 @@ var Pv = function (_PvConfig) {
       debug: location.host === 'localhost',
       newestOnTop: false,
       progressBar: false,
-      positionClass: 'toast-bottom-center',
+      positionClass: 'toast-top-center',
       preventDuplicates: true,
       onclick: null,
       showDuration: '300',
@@ -3514,7 +3514,14 @@ var Pv = function (_PvConfig) {
       showEasing: 'swing',
       hideEasing: 'linear',
       showMethod: 'fadeIn',
-      hideMethod: 'fadeOut'
+      hideMethod: 'fadeOut',
+      toastClass: 'alert',
+      iconClasses: {
+        error: 'alert-danger',
+        info: 'alert-info',
+        success: 'alert-success',
+        warning: 'alert-warning'
+      }
     };
     return _this;
   }
@@ -4879,7 +4886,7 @@ var Pv = function (_PvConfig) {
 
       this.timeout = setTimeout(function (err) {
         _this10.resetView();
-        _this10.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>:\n        ' + $.i18n('error-timed-out') + '\n        ' + $.i18n('error-please-report', _this10.getBugReportURL()) + '\n      ', 'error');
+        _this10.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>:\n        ' + $.i18n('error-timed-out') + '\n        ' + $.i18n('error-please-report', _this10.getBugReportURL()) + '\n      ', 'error', 0);
       }, 20 * 1000);
     }
 
@@ -6349,13 +6356,13 @@ var templates = {
     }, 0);
     var markup = '';
 
-    markup = '<div class="linear-legend--totals">\n      <div>\n        <strong>' + $.i18n('pageviews') + ':</strong>\n        <span class=\'pull-right\'>\n          ' + scope.formatNumber(total) + '\n        </span>\n      </div>\n      <div>\n        <strong>Avg pageviews:</strong>\n        <span class=\'pull-right\'>\n          ' + scope.formatNumber(Math.round(total / scope.numDaysInRange())) + '/' + $.i18n('day') + '\n        </span>\n      </div>\n    </div>';
+    markup = '<div class="linear-legend--totals">\n      <div>\n        <strong>' + $.i18n('pageviews') + ':</strong>\n        <span class=\'pull-right\'>\n          ' + scope.formatNumber(total) + '\n        </span>\n      </div>\n      <div>\n        <strong>Daily average:</strong>\n        <span class=\'pull-right\'>\n          ' + scope.formatNumber(Math.round(total / scope.numDaysInRange())) + '\n        </span>\n      </div>\n    </div>';
 
     markup += '<div class="linear-legends">';
 
     for (var i = 0; i < datasets.length; i++) {
       var _pageInfo = Object.assign({}, datasets[i], scope.pageInfo[datasets[i].label]);
-      markup += '\n        <div class="linear-legend">\n          <div class="linear-legend--label" style="background-color:' + scope.rgba(_pageInfo.color, 0.8) + '">\n            <span class=\'pull-right remove-page glyphicon glyphicon-remove\' data-article=' + _pageInfo.title + ' title=\'Remove page\'></span>\n            <a href="' + scope.getPageURL(_pageInfo.label) + '" target="_blank">' + _pageInfo.label + '</a>\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.sum) + '\n            </span>\n            Pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.average) + '/' + $.i18n('day') + '\n            </span>\n            Avg pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.num_edits) + '\n            </span>\n            Edits:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.num_users) + '\n            </span>\n            Editors:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.length) + '\n            </span>\n            Size:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.watchers) + '\n            </span>\n            Watchers:\n          </div>\n          <div class="linear-legend--links">\n            <a href="' + scope.getLangviewsURL(_pageInfo.label) + '" target="_blank">' + $.i18n('all-languages') + '</a>\n            &bullet;\n            <a href="' + scope.getRedirectviewsURL(_pageInfo.label) + '" target="_blank">' + $.i18n('redirects') + '</a>\n          </div>\n        </div>\n      ';
+      markup += '\n        <div class="linear-legend">\n          <div class="linear-legend--label" style="background-color:' + scope.rgba(_pageInfo.color, 0.8) + '">\n            <span class=\'pull-right remove-page glyphicon glyphicon-remove\' data-article=' + _pageInfo.title + ' title=\'Remove page\'></span>\n            <a href="' + scope.getPageURL(_pageInfo.label) + '" target="_blank">' + _pageInfo.label + '</a>\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.sum) + '\n            </span>\n            Pageviews:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.average) + '\n            </span>\n            Daily average:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.num_edits) + '\n            </span>\n            Edits:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.num_users) + '\n            </span>\n            Editors:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.length) + '\n            </span>\n            Size:\n          </div>\n          <div class="linear-legend--counts">\n            <span class=\'pull-right\'>\n              ' + scope.formatNumber(_pageInfo.watchers) + '\n            </span>\n            Watchers:\n          </div>\n          <div class="linear-legend--links">\n            <a href="' + scope.getLangviewsURL(_pageInfo.label) + '" target="_blank">' + $.i18n('all-languages') + '</a>\n            &bullet;\n            <a href="' + scope.getRedirectviewsURL(_pageInfo.label) + '" target="_blank">' + $.i18n('redirects') + '</a>\n          </div>\n        </div>\n      ';
     }
     return markup += '</div>';
   },

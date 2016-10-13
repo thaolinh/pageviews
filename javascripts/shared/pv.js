@@ -74,7 +74,7 @@ class Pv extends PvConfig {
       debug: location.host === 'localhost',
       newestOnTop: false,
       progressBar: false,
-      positionClass: 'toast-bottom-center',
+      positionClass: 'toast-top-center',
       preventDuplicates: true,
       onclick: null,
       showDuration: '300',
@@ -84,7 +84,14 @@ class Pv extends PvConfig {
       showEasing: 'swing',
       hideEasing: 'linear',
       showMethod: 'fadeIn',
-      hideMethod: 'fadeOut'
+      hideMethod: 'fadeOut',
+      toastClass: 'alert',
+      iconClasses: {
+        error: 'alert-danger',
+        info: 'alert-info',
+        success: 'alert-success',
+        warning: 'alert-warning'
+      }
     };
   }
 
@@ -1349,7 +1356,7 @@ class Pv extends PvConfig {
       this.writeMessage(`<strong>${$.i18n('fatal-error')}</strong>:
         ${$.i18n('error-timed-out')}
         ${$.i18n('error-please-report', this.getBugReportURL())}
-      `, 'error');
+      `, 'error', 0);
     }, 20 * 1000);
   }
 
@@ -1452,6 +1459,9 @@ class Pv extends PvConfig {
     return valid;
   }
 
+  // FIXME: restore writeMessage to the way it used to be,
+  // and make addSiteNotice do the toastr, and change instances of this.writeMessage
+  // accordingly
   /**
    * Writes message just below the chart
    * @param {string} message - message to write

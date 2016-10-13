@@ -75,9 +75,9 @@ const templates = {
         </span>
       </div>
       <div>
-        <strong>Avg pageviews:</strong>
+        <strong>Daily average:</strong>
         <span class='pull-right'>
-          ${scope.formatNumber(Math.round(total / scope.numDaysInRange()))}/${$.i18n('day')}
+          ${scope.formatNumber(Math.round(total / scope.numDaysInRange()))}
         </span>
       </div>
     </div>`;
@@ -100,9 +100,9 @@ const templates = {
           </div>
           <div class="linear-legend--counts">
             <span class='pull-right'>
-              ${scope.formatNumber(pageInfo.average)}/${$.i18n('day')}
+              ${scope.formatNumber(pageInfo.average)}
             </span>
-            Avg pageviews:
+            Daily average:
           </div>
           <div class="linear-legend--counts">
             <span class='pull-right'>

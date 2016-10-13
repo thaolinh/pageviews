@@ -458,19 +458,6 @@ footer {
   margin-right: 4px;
 }
 
-#toast-container > .toast {
-  max-width: 500px !important;
-  opacity: 1 !important;
-  width: auto !important;
-}
-#toast-container > .toast a {
-  font-weight: bold;
-}
-#toast-container > .toast .toast-close-button {
-  right: -.2em;
-  top: -.2em;
-}
-
 .special-ranges {
   padding: 5px 20px 0;
 }
