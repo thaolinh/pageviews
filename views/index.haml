@@ -13,7 +13,7 @@
 
     - include '_header.php'
 
-    %aside.col-lg-2.page-selector
+    %aside.col-lg-2.col-md-2.page-selector
       %header.text-center
         %h4 Options
       %div.page-selector--container
@@ -52,7 +52,7 @@
             %option(value="bot")
               = $I18N->msg( 'bot' )
 
-    %main.col-lg-8
+    %main.col-lg-8.col-md-10
       %div
         %label(for="article-input")
           = $I18N->msg( 'pages' )
@@ -66,11 +66,36 @@
 
       %div.message-container.col-lg-12
 
-    %aside.col-lg-2.summary-column
+    %aside.col-lg-2.col-md-12.summary-column
       %header.text-center
         %h4 Totals
       %div.summary-column--container
         %div.chart-legend.col-lg-12.clearfix
+
+    %output.table-view.col-lg-10.col-lg-offset-1
+      :php
+        $columns = array(
+          'title' => 'page-title',
+          'views' => 'views',
+          'average' => 'daily-views',
+          'edits' => 'edits',
+          'editors' => 'editors',
+          'size' => 'size',
+          'protection' => 'protection',
+          'watchers' => 'watchers'
+        );
+      %table.table.table-hover
+        %thead.table-view--header
+          %tr
+            %th
+            - foreach( $columns as $column => $translation )
+              %th(class="table-view--#{$column}")
+                %span(class="sort-link sort-link--#{$column}" data-type="#{$column}")
+                  = $I18N->msg( $translation )
+                  %span.glyphicon.glyphicon-sort
+            %th
+              %span Links
+        %tbody.output-list
 
     - include "_footer.php"
 

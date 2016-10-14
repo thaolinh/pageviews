@@ -458,6 +458,28 @@ footer {
   margin-right: 4px;
 }
 
+.sort-link {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
+.sort-link .glyphicon {
+  top: 2px;
+  visibility: hidden;
+}
+.sort-link .glyphicon-sort-by-alphabet,
+.sort-link .glyphicon-sort-by-alphabet-alt,
+.sort-link .glyphicon-sort-by-order,
+.sort-link .glyphicon-sort-by-order-alt {
+  visibility: visible;
+}
+.sort-link:hover .glyphicon-sort {
+  visibility: visible;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -614,8 +636,6 @@ footer {
 }
 
 .linear-legend {
-  background: #fff;
-  border: solid 1px #ccc;
   border-radius: 5px;
   line-height: 15px;
   margin-bottom: 6px;
@@ -624,9 +644,6 @@ footer {
 }
 .linear-legend a {
   float: none;
-}
-.linear-legend .linear-legend--counts {
-  padding: 0 5px;
 }
 
 .linear-legend--totals {
@@ -656,13 +673,15 @@ footer {
   margin: 0 0 0 10px;
 }
 
-main {
-  border-left: solid 1px #ccc;
-  border-right: solid 1px #ccc;
+.page-selector {
+  border-right: solid 1px #e0e0e0;
 }
-
 .page-selector .page-selector--container > div {
   margin-bottom: 10px;
+}
+
+.summary-column {
+  border-left: solid 1px #e0e0e0;
 }
 
 .remove-page {
@@ -672,4 +691,26 @@ main {
 
 .data-links {
   margin-top: 15px;
+}
+
+.table-view {
+  display: none;
+}
+
+.table .table-view--header th {
+  vertical-align: top;
+}
+
+.table .output-list td {
+  vertical-align: middle;
+}
+
+.table-view--color-col {
+  padding-right: 0;
+}
+
+.table-view--color-block {
+  display: block;
+  height: 16px;
+  width: 16px;
 }

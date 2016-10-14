@@ -275,7 +275,17 @@
 	"comma-character": ",",
 	"processing-page": "Processing page $1 of $2",
 	"fetching-data": "Fetching data from $1",
-	"documentation": "documentation",
+	"documentation": "Documentation",
 	"building-dataset": "Building dataset...",
-	"loading-cache": "Loading from cache..."
+	"loading-cache": "Loading from cache...",
+	"views": "Views",
+	"daily-views": "Daily views",
+	"edits": "Edits",
+	"editors": "Editors",
+	"size": "Size",
+	"protection": "Protection",
+	"watchers": "Watchers",
+	"none": "None",
+	"unknown": "Unknown",
+	"help": "Help"
 }

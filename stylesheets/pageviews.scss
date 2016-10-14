@@ -4,15 +4,16 @@
 @import 'shared';
 @import 'chart_view';
 
-main {
-  border-left: solid 1px $gray;
-  border-right: solid 1px $gray;
-}
-
 .page-selector {
+  border-right: solid 1px $light-gray;
+
   .page-selector--container > div {
     margin-bottom: 10px;
   }
+}
+
+.summary-column {
+  border-left: solid 1px $light-gray;
 }
 
 .remove-page {
@@ -22,4 +23,26 @@ main {
 
 .data-links {
   margin-top: 15px;
+}
+
+.table-view {
+  display: none;
+}
+
+.table .table-view--header th {
+  vertical-align: top;
+}
+
+.table .output-list td {
+  vertical-align: middle;
+}
+
+.table-view--color-col {
+  padding-right: 0;
+}
+
+.table-view--color-block {
+  display: block;
+  height: 16px;
+  width: 16px;
 }

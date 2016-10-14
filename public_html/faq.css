@@ -457,3 +457,25 @@ footer {
 .glyphicon-print {
   margin-right: 4px;
 }
+
+.sort-link {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
+.sort-link .glyphicon {
+  top: 2px;
+  visibility: hidden;
+}
+.sort-link .glyphicon-sort-by-alphabet,
+.sort-link .glyphicon-sort-by-alphabet-alt,
+.sort-link .glyphicon-sort-by-order,
+.sort-link .glyphicon-sort-by-order-alt {
+  visibility: visible;
+}
+.sort-link:hover .glyphicon-sort {
+  visibility: visible;
+}

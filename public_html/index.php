@@ -14,7 +14,7 @@
       </div>
     </div>
     <?php include '_header.php'; ?>
-    <aside class="col-lg-2 page-selector">
+    <aside class="col-lg-2 col-md-2 page-selector">
       <header class="text-center">
         <h4>Options</h4>
       </header>
@@ -74,7 +74,7 @@
         </div>
       </div>
     </aside>
-    <main class="col-lg-8">
+    <main class="col-lg-8 col-md-10">
       <div>
         <label for="article-input">
           <?php echo $I18N->msg( 'pages' ); ?>
@@ -88,7 +88,7 @@
       </div>
       <div class="message-container col-lg-12"></div>
     </main>
-    <aside class="col-lg-2 summary-column">
+    <aside class="col-lg-2 col-md-12 summary-column">
       <header class="text-center">
         <h4>Totals</h4>
       </header>
@@ -96,6 +96,39 @@
         <div class="chart-legend col-lg-12 clearfix"></div>
       </div>
     </aside>
+    <output class="table-view col-lg-10 col-lg-offset-1">
+      <?php
+        $columns = array(
+          'title' => 'page-title',
+          'views' => 'views',
+          'average' => 'daily-views',
+          'edits' => 'edits',
+          'editors' => 'editors',
+          'size' => 'size',
+          'protection' => 'protection',
+          'watchers' => 'watchers'
+        );
+      ?>
+      <table class="table table-hover">
+        <thead class="table-view--header">
+          <tr>
+            <th></th>
+            <?php foreach( $columns as $column => $translation ) { ?>
+              <th class="table-view--<?php echo $column; ?>">
+                <span class="sort-link sort-link--<?php echo $column; ?>" data-type="<?php echo $column; ?>">
+                  <?php echo $I18N->msg( $translation ); ?>
+                  <span class="glyphicon glyphicon-sort"></span>
+                </span>
+              </th>
+            <?php } ?>
+            <th>
+              <span>Links</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="output-list"></tbody>
+      </table>
+    </output>
     <?php include "_footer.php"; ?>
     <?php include "_modals.php"; ?>
   </body>

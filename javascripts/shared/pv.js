@@ -80,7 +80,7 @@ class Pv extends PvConfig {
       showDuration: '300',
       hideDuration: '1000',
       timeOut: '5000',
-      extendedTimeOut: '1000',
+      extendedTimeOut: '3000',
       showEasing: 'swing',
       hideEasing: 'linear',
       showMethod: 'fadeIn',
@@ -1071,7 +1071,7 @@ class Pv extends PvConfig {
 
   /**
    * Directly set items in Select2
-   * Currently is not able to remove underscore from page names
+   * Currently is not able to remove underscores from page names
    *
    * @param {array} items - page titles
    * @returns {array} - untouched array of items

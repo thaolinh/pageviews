@@ -11,29 +11,40 @@
  * @type {Object}
  */
 const templates = {
-  linearLegend(datasets, scope) {
-    const dataList = entry => {
-      let markup = '';
+  chartLegend(scope) {
+    const dataList = (entity, multiEntity = false) => {
+      let editsLink;
 
-      const protectionList = entry.protection && entry.protection.length ? entry.protection : [{ type: 'edit', level: 'none' }];
+      if (multiEntity) {
+        editsLink = scope.formatNumber(entity.num_edits);
+      } else {
+        editsLink = `<a href="${scope.getExpandedPageURL(entity.label)}&action=history" target="_blank" class="pull-right">
+            ${scope.formatNumber(entity.num_edits)}
+          </a>`;
+      }
 
-      const infoHash = {
+      let infoHash = {
         'Pageviews': {
-          'Pageviews': scope.formatNumber(entry.sum),
-          'Daily average': scope.formatNumber(entry.average)
+          'Pageviews': scope.formatNumber(entity.sum),
+          'Daily average': scope.formatNumber(entity.average)
         },
         'Revisions': {
-          'Edits': `<a href="${scope.getExpandedPageURL(entry.label)}&action=history" target="_blank" class="pull-right">
-              ${scope.formatNumber(entry.num_edits)}
-            </a>`,
-          'Editors': scope.formatNumber(entry.num_users)
+          'Edits': editsLink,
+          'Editors': scope.formatNumber(entity.num_users)
         },
-        'Page information': {
-          'Size': scope.formatNumber(entry.length),
-          'Protection': protectionList.find(prot => prot.type === 'edit').level,
-          'Watchers': scope.formatNumber(entry.watchers)
+        'Basic information': {
+          'Watchers': entity.watchers ? scope.formatNumber(entity.watchers) : $.i18n('unknown')
         }
       };
+
+      if (!multiEntity) {
+        Object.assign(infoHash['Basic information'], {
+          'Size': entity.length ? scope.formatNumber(entity.length) : '',
+          'Protection': entity.protection
+        });
+      }
+
+      let markup = '';
 
       for (let block in infoHash) {
         markup += `<div class='legend-block'><h5>${block}</h5><hr/>`;
@@ -51,128 +62,39 @@ const templates = {
         markup += '</div>';
       }
 
-      return markup + `
-        <div class="linear-legend--links">
-          <a href="${scope.getLangviewsURL(entry.label)}" target="_blank">${$.i18n('all-languages')}</a>
-          &bullet;
-          <a href="${scope.getRedirectviewsURL(entry.label)}" target="_blank">${$.i18n('redirects')}</a>
-        </div>`;
+      if (!multiEntity) {
+        markup += `
+          <div class="linear-legend--links">
+            <a href="${scope.getLangviewsURL(entity.label)}" target="_blank">${$.i18n('all-languages')}</a>
+            &bullet;
+            <a href="${scope.getRedirectviewsURL(entity.label)}" target="_blank">${$.i18n('redirects')}</a>
+          </div>`;
+      }
+
+      return markup;
     };
 
-    if (datasets.length === 1) {
-      const pageInfo = Object.assign({}, datasets[0], scope.pageInfo[datasets[0].label]);
-      return dataList(pageInfo);
+    // map out edit protection level for each entity
+    const entities = scope.outputData.map(entity => {
+      const protection = (entity.protection || []).find(prot => prot.type === 'edit');
+      entity.protection = protection ? protection.level : $.i18n('none').toLowerCase();
+      return entity;
+    });
+
+    if (scope.outputData.length === 1) {
+      return dataList(entities[0]);
     }
 
-    const total = datasets.reduce((a,b) => a + b.sum, 0);
-    let markup = '';
+    const sum = entities.reduce((a,b) => a + b.sum, 0);
+    const totals = {
+      sum,
+      average: Math.round(sum / entities.length),
+      num_edits: entities.reduce((a, b) => a + b.num_edits, 0),
+      num_users: entities.reduce((a, b) => a + b.num_users, 0),
+      watchers: entities.reduce((a, b) => a + b.watchers || 0, 0)
+    };
 
-    markup = `<div class="linear-legend--totals">
-      <div>
-        <strong>${$.i18n('pageviews')}:</strong>
-        <span class='pull-right'>
-          ${scope.formatNumber(total)}
-        </span>
-      </div>
-      <div>
-        <strong>Daily average:</strong>
-        <span class='pull-right'>
-          ${scope.formatNumber(Math.round(total / scope.numDaysInRange()))}
-        </span>
-      </div>
-    </div>`;
-
-    markup += '<div class="linear-legends">';
-
-    for (let i = 0; i < datasets.length; i++) {
-      const pageInfo = Object.assign({}, datasets[i], scope.pageInfo[datasets[i].label]);
-      markup += `
-        <div class="linear-legend">
-          <div class="linear-legend--label" style="background-color:${scope.rgba(pageInfo.color, 0.8)}">
-            <span class='pull-right remove-page glyphicon glyphicon-remove' data-article=${pageInfo.title} title='Remove page'></span>
-            <a href="${scope.getPageURL(pageInfo.label)}" target="_blank">${pageInfo.label}</a>
-          </div>
-          <div class="linear-legend--counts">
-            <span class='pull-right'>
-              ${scope.formatNumber(pageInfo.sum)}
-            </span>
-            Pageviews:
-          </div>
-          <div class="linear-legend--counts">
-            <span class='pull-right'>
-              ${scope.formatNumber(pageInfo.average)}
-            </span>
-            Daily average:
-          </div>
-          <div class="linear-legend--counts">
-            <span class='pull-right'>
-              ${scope.formatNumber(pageInfo.num_edits)}
-            </span>
-            Edits:
-          </div>
-          <div class="linear-legend--counts">
-            <span class='pull-right'>
-              ${scope.formatNumber(pageInfo.num_users)}
-            </span>
-            Editors:
-          </div>
-          <div class="linear-legend--counts">
-            <span class='pull-right'>
-              ${scope.formatNumber(pageInfo.length)}
-            </span>
-            Size:
-          </div>
-          <div class="linear-legend--counts">
-            <span class='pull-right'>
-              ${scope.formatNumber(pageInfo.watchers)}
-            </span>
-            Watchers:
-          </div>
-          <div class="linear-legend--links">
-            <a href="${scope.getLangviewsURL(pageInfo.label)}" target="_blank">${$.i18n('all-languages')}</a>
-            &bullet;
-            <a href="${scope.getRedirectviewsURL(pageInfo.label)}" target="_blank">${$.i18n('redirects')}</a>
-          </div>
-        </div>
-      `;
-    }
-    return markup += '</div>';
-  },
-
-  circularLegend(datasets, scope) {
-    const dataset = datasets[0],
-      total = dataset.data.reduce((a,b) => a + b);
-    let markup = `<div class="linear-legend--totals">
-      <strong>${$.i18n('totals')}:</strong>
-      ${scope.formatNumber(total)} (${scope.formatNumber(Math.round(total / scope.numDaysInRange()))}/${$.i18n('day')})
-    </div>`;
-
-    markup += '<div class="linear-legends">';
-
-    for (let i = 0; i < dataset.data.length; i++) {
-      const metaKey = Object.keys(dataset._meta)[0];
-      const label = dataset._meta[metaKey].data[i]._view.label;
-      markup += `
-        <span class="linear-legend">
-          <div class="linear-legend--label" style="background-color:${dataset.backgroundColor[i]}">
-            <a href="${scope.getPageURL(label)}" target="_blank">${label}</a>
-          </div>
-          <div class="linear-legend--counts">
-            ${scope.formatNumber(dataset.data[i])} (${scope.formatNumber(dataset.averages[i])}/${$.i18n('day')})
-          </div>
-          <div class="linear-legend--links">
-            <a href="${scope.getLangviewsURL(label)}" target="_blank">All languages</a>
-            &bullet;
-            <a href="${scope.getRedirectviewsURL(label)}" target="_blank">${$.i18n('redirects')}</a>
-            &bullet;
-            <a href="${scope.getExpandedPageURL(label)}&action=history" target="_blank">History</a>
-            &bullet;
-            <a href="${scope.getExpandedPageURL(label)}&action=info" target="_blank">Info</a>
-          </div>
-        </span>
-      `;
-    }
-    return markup += '</div>';
+    return dataList(totals, true);
   }
 };
 

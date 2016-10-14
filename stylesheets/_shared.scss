@@ -301,30 +301,25 @@ footer {
   margin-right: 4px;
 }
 
-// #toast-container > div {
-//   // max-width: 500px;
-//   // opacity: 1;
+.sort-link {
+  @include prefix(user-select, none);
+  cursor: pointer;
 
-//   // a {
-//   //   color: $link;
-//   //   font-weight: bold;
-//   // }
+  .glyphicon {
+    top: 2px;
+    visibility: hidden;
+  }
 
-//   // &.toast-warning {
-//   //   background-color: $bootstrap-warning-bg;
-//   //   color: $bootstrap-warning-text;
+  .glyphicon-sort-by-alphabet,
+  .glyphicon-sort-by-alphabet-alt,
+  .glyphicon-sort-by-order,
+  .glyphicon-sort-by-order-alt {
+    visibility: visible;
+  }
 
-//   //   button {
-//   //     color: $bootstrap-warning-text;
-//   //   }
-//   // }
-
-//   // &.toast-error {
-//   //   background-color: $bootstrap-danger-bg;
-//   //   color: $bootstrap-danger-text;
-
-//   //   button {
-//   //     color: $bootstrap-danger-text;
-//   //   }
-//   // }
-// }
+  &:hover {
+    .glyphicon-sort {
+      visibility: visible;
+    }
+  }
+}

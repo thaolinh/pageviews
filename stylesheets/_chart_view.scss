@@ -52,8 +52,6 @@
 }
 
 .linear-legend {
-  background: $white;
-  border: solid 1px $gray;
   border-radius: 5px;
   line-height: 15px;
   margin-bottom: 6px;
@@ -62,10 +60,6 @@
 
   a {
     float: none;
-  }
-
-  .linear-legend--counts {
-    padding: 0 5px;
   }
 }
 

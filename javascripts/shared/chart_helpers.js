@@ -212,53 +212,43 @@ const ChartHelpers = superclass => class extends superclass {
   }
 
   /**
-   * Get data formatted for a circular chart (Pie, Doughnut, PolarArea)
-   *
-   * @param {object} data - data just before we are ready to render the chart
-   * @param {string} entity - title of entity (page or site)
-   * @param {integer} index - where we are in the list of entities to show
-   *    used for colour selection
+   * Get data formatted for Chart.js and the legend templates
+   * @param {Array} datasets - as retrieved by getPageViewsData
    * @returns {object} - ready for chart rendering
    */
-  getCircularData(data, entity, index) {
-    const values = data.map(elem => this.isPageviews() ? elem.views : elem.devices),
-      color = this.config.colors[index],
-      value = values.reduce((a, b) => a + b),
-      average = Math.round(value / values.length);
+  buildChartData(datasets) {
+    const labels = $(this.config.select2Input).val();
 
-    return Object.assign({
-      label: entity.descore(),
-      value,
-      average
-    }, this.config.chartConfig[this.chartType].dataset(color));
-  }
+    /** preserve order of datasets due to async calls */
+    return datasets.map((dataset, index) => {
+      /** Build the article's dataset. */
+      const values = dataset.map(elem => this.isPageviews() ? elem.views : elem.devices),
+        sum = values.reduce((a, b) => a + b),
+        average = Math.round(sum / values.length),
+        max = Math.max(...values),
+        min = Math.min(...values),
+        color = this.config.colors[index % 10],
+        label = labels[index].descore();
 
-  /**
-   * Get data formatted for a linear chart (line, bar, radar)
-   *
-   * @param {object} data - data just before we are ready to render the chart
-   * @param {string} entity - title of entity
-   * @param {integer} index - where we are in the list of entities to show
-   *    used for colour selection
-   * @returns {object} - ready for chart rendering
-   */
-  getLinearData(data, entity, index) {
-    const values = data.map(elem => this.isPageviews() ? elem.views : elem.devices),
-      sum = values.reduce((a, b) => a + b),
-      average = Math.round(sum / values.length),
-      max = Math.max(...values),
-      min = Math.min(...values),
-      color = this.config.colors[index % 10];
+      const entityInfo = this.entityInfo ? this.entityInfo[label] : {};
 
-    return Object.assign({
-      label: entity.descore(),
-      data: values,
-      sum,
-      average,
-      max,
-      min,
-      color
-    }, this.config.chartConfig[this.chartType].dataset(color));
+      dataset = Object.assign({
+        label,
+        data: values,
+        value: sum, // duplicated because Chart.js wants a single `value` for circular charts
+        sum,
+        average,
+        max,
+        min,
+        color
+      }, this.config.chartConfig[this.chartType].dataset(color), entityInfo);
+
+      if (this.isLogarithmic()) {
+        dataset.data = dataset.data.map(view => view || null);
+      }
+
+      return dataset;
+    });
   }
 
   /**
@@ -560,24 +550,10 @@ const ChartHelpers = superclass => class extends superclass {
       $('.multi-page-chart-node').show();
     }
 
-    /** preserve order of datasets due to asyn calls */
-    let sortedDatasets = new Array(xhrData.entities.length);
-    xhrData.datasets.forEach((dataset, index) => {
-      const label = xhrData.entities[index];
-
-      /** Build the article's dataset. */
-      if (this.config.linearCharts.includes(this.chartType)) {
-        dataset = this.getLinearData(dataset, label, index);
-      } else {
-        dataset = this.getCircularData(dataset, label, index);
-      }
-
-      if (this.isLogarithmic()) dataset.data = dataset.data.map(view => view || null);
-      sortedDatasets[index] = dataset;
-    });
+    this.outputData = this.buildChartData(xhrData.datasets, xhrData.entities);
 
     if (this.autoLogDetection === 'true') {
-      const shouldBeLogarithmic = this.shouldBeLogarithmic(sortedDatasets.map(set => set.data));
+      const shouldBeLogarithmic = this.shouldBeLogarithmic(this.outputData.map(set => set.data));
       $(this.config.logarithmicCheckbox).prop('checked', shouldBeLogarithmic);
       $('.begin-at-zero').toggleClass('disabled', shouldBeLogarithmic);
     }
@@ -615,7 +591,7 @@ const ChartHelpers = superclass => class extends superclass {
       const context = $(this.config.chart)[0].getContext('2d');
 
       if (this.config.linearCharts.includes(this.chartType)) {
-        const linearData = {labels: xhrData.labels, datasets: sortedDatasets};
+        const linearData = {labels: xhrData.labels, datasets: this.outputData};
 
         if (this.chartType === 'radar') {
           options.scale.ticks.beginAtZero = $('.begin-at-zero-option').is(':checked');
@@ -632,12 +608,12 @@ const ChartHelpers = superclass => class extends superclass {
         this.chartObj = new Chart(context, {
           type: this.chartType,
           data: {
-            labels: sortedDatasets.map(d => d.label),
+            labels: this.outputData.map(d => d.label),
             datasets: [{
-              data: sortedDatasets.map(d => d.value),
-              backgroundColor: sortedDatasets.map(d => d.backgroundColor),
-              hoverBackgroundColor: sortedDatasets.map(d => d.hoverBackgroundColor),
-              averages: sortedDatasets.map(d => d.average)
+              data: this.outputData.map(d => d.value),
+              backgroundColor: this.outputData.map(d => d.backgroundColor),
+              hoverBackgroundColor: this.outputData.map(d => d.hoverBackgroundColor),
+              averages: this.outputData.map(d => d.average)
             }]
           },
           options
@@ -652,6 +628,8 @@ const ChartHelpers = superclass => class extends superclass {
 
     $('.chart-legend').html(this.chartObj.generateLegend());
     $('.data-links').removeClass('invisible');
+
+    if (this.app === 'pageviews') this.updateTable();
   }
 
   /**

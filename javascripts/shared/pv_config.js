@@ -45,7 +45,7 @@ class PvConfig {
                 }
               }]
             },
-            legendCallback: chart => this.config.linearLegend(chart.data.datasets, self),
+            legendCallback: chart => this.config.chartLegend(self),
             tooltips: this.linearTooltips
           },
           dataset(color) {
@@ -83,7 +83,7 @@ class PvConfig {
                 }
               }]
             },
-            legendCallback: chart => this.config.linearLegend(chart.data.datasets, self),
+            legendCallback: chart => this.config.chartLegend(self),
             tooltips: this.linearTooltips
           },
           dataset(color) {
@@ -104,7 +104,7 @@ class PvConfig {
                 callback: value => this.formatNumber(value)
               }
             },
-            legendCallback: chart => this.config.linearLegend(chart.data.datasets, self),
+            legendCallback: chart => this.config.chartLegend(self),
             tooltips: this.linearTooltips
           },
           dataset(color) {
@@ -123,7 +123,7 @@ class PvConfig {
         },
         pie: {
           opts: {
-            legendCallback: chart => this.config.circularLegend(chart.data.datasets, self),
+            legendCallback: chart => this.config.chartLegend(self),
             tooltips: this.circularTooltips
           },
           dataset(color) {
@@ -136,7 +136,7 @@ class PvConfig {
         },
         doughnut: {
           opts: {
-            legendCallback: chart => this.config.circularLegend(chart.data.datasets, self),
+            legendCallback: chart => this.config.chartLegend(self),
             tooltips: this.circularTooltips
           },
           dataset(color) {
@@ -155,7 +155,7 @@ class PvConfig {
                 callback: value => this.formatNumber(value)
               }
             },
-            legendCallback: chart => this.config.circularLegend(chart.data.datasets, self),
+            legendCallback: chart => this.config.chartLegend(self),
             tooltips: this.circularTooltips
           },
           dataset(color) {
@@ -204,7 +204,7 @@ class PvConfig {
             }
           }]
         },
-        legendCallback: chart => this.config.linearLegend(chart.data.datasets, self)
+        legendCallback: chart => this.config.chartLegend(chart.data.datasets, self)
       },
       daysAgo: 20,
       minDate: moment('2015-07-01').startOf('day'),

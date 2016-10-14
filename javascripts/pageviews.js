@@ -16,9 +16,11 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
     super(config);
     this.app = 'pageviews';
 
-    this.pageInfo = false; /** let's us know if we've gotten the page info from API yet */
+    this.entityInfo = false; /** let's us know if we've gotten the page info from API yet */
     this.specialRange = null;
     this.initialQuery = false;
+    this.sort = 'title';
+    this.direction = '-1';
 
     /**
      * Select2 library prints "Uncaught TypeError: XYZ is not a function" errors
@@ -63,7 +65,7 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
     } else {
       dfd.resolve({
         num_edits: 0,
-        num_editors: 0
+        num_users: 0
       });
     }
 
@@ -162,7 +164,9 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
       } else {
         // leave Select2 empty and put focus on it so they can type in pages
         this.focusSelect2();
-        this.stopSpinny(); // manually hide spinny since we aren't drawing the chart
+        // manually hide spinny since we aren't drawing the chart,
+        // again using setTimeout to let everything catch up
+        setTimeout(this.stopSpinny.bind(this));
         this.setInitialChartType();
       }
     // If there's more than 10 articles attempt to create a PagePile and open it in Massviews
@@ -285,12 +289,12 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
     $select2Input.select2(params);
     $select2Input.on('change', this.processInput.bind(this));
     $select2Input.on('select2:open', e => {
-      if ($(e.target).val().length === 10) {
+      if ($(e.target).val() && $(e.target).val().length === 10) {
         $('.select2-search__field').one('keyup', () => {
           const message = $.i18n(
             'massviews-notice',
             10,
-            `<a href='/massviews/'>${$.i18n('massviews')}</a>`
+            `<strong><a href='/massviews/'>${$.i18n('massviews')}</a></strong>`
           );
           this.writeMessage(message, 'info', 10000);
         });
@@ -344,6 +348,12 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
   setupListeners() {
     super.setupListeners();
     $('#platform-select, #agent-select').on('change', this.processInput.bind(this));
+    $('.sort-link').on('click', e => {
+      const sortType = $(e.currentTarget).data('type');
+      this.direction = this.sort === sortType ? -this.direction : 1;
+      this.sort = sortType;
+      this.updateTable();
+    });
   }
 
   /**
@@ -389,25 +399,105 @@ class PageViews extends mix(Pv).with(ChartHelpers) {
     }
   }
 
+  updateTable() {
+    if (this.outputData.length === 1) return $('.table-view').hide();
+
+    $('.output-list').html('');
+
+    /** sort ascending by current sort setting */
+    const datasets = this.outputData.sort((a, b) => {
+      const before = this.getSortProperty(a, this.sort),
+        after = this.getSortProperty(b, this.sort);
+
+      if (before < after) {
+        return this.direction;
+      } else if (before > after) {
+        return -this.direction;
+      } else {
+        return 0;
+      }
+    });
+
+    $('.sort-link span').removeClass('glyphicon-sort-by-alphabet-alt glyphicon-sort-by-alphabet').addClass('glyphicon-sort');
+    const newSortClassName = parseInt(this.direction, 10) === 1 ? 'glyphicon-sort-by-alphabet-alt' : 'glyphicon-sort-by-alphabet';
+    $(`.sort-link--${this.sort} span`).addClass(newSortClassName).removeClass('glyphicon-sort');
+
+    let hasProtection = false;
+    datasets.forEach((item, index) => {
+      if (item.protection !== $.i18n('none')) hasProtection = true;
+
+      $('.output-list').append(
+        `<tr>
+         <td class='table-view--color-col'>
+          <span class='table-view--color-block' style="background:${item.color}"></span>
+         </td>
+         <td>${this.getPageLink(item.label)}</td>
+         <td>${this.formatNumber(item.sum)}</td>
+         <td>${this.formatNumber(item.average)}</td>
+         <td>${this.formatNumber(item.num_edits)}</td>
+         <td>${this.formatNumber(item.num_users)}</td>
+         <td>${this.formatNumber(item.length)}</td>
+         <td>${item.protection}</td>
+         <td>${this.formatNumber(item.watchers)}</td>
+         <td>
+          <a href="${this.getLangviewsURL(item.label)}" target="_blank">${$.i18n('all-languages')}</a>
+          &bull;
+          <a href="${this.getRedirectviewsURL(item.label)}" target="_blank">${$.i18n('redirects')}</a>
+         </td>
+         </tr>`
+      );
+    });
+
+    // hide protection column if no pages are protected
+    $('.table-view--protection').toggle(hasProtection);
+
+    $('.table-view').show();
+  }
+
+  /**
+   * Get value of given page for the purposes of column sorting in table view
+   * @param  {object} item - page name
+   * @param  {String} type - type of property to get
+   * @return {String|Number} - value
+   */
+  getSortProperty(item, type) {
+    switch (type) {
+    case 'title':
+      return item.label;
+    case 'views':
+      return Number(item.sum);
+    case 'average':
+      return Number(item.average);
+    case 'edits':
+      return Number(item.num_edits);
+    case 'editors':
+      return Number(item.num_users);
+    case 'size':
+      return Number(item.length);
+    case 'watchers':
+      return Number(item.watchers);
+    }
+  }
+
   /**
    * Get page info and editing info of given pages.
-   * Also sets this.pageInfo
+   * Also sets this.entityInfo
    * @param  {Array} pages - page names
-   * @return {Deferred} Promise resolving with this.pageInfo
+   * @return {Deferred} Promise resolving with this.entityInfo
    */
   getPageAndEditInfo(pages) {
     const dfd = $.Deferred();
 
     this.getPageInfo(pages).done(data => {
-      this.pageInfo = data;
+      this.entityInfo = data;
       // use Object.keys(data) to get normalized page names
       this.getEditData(Object.keys(data)).done(editData => {
         for (let page in editData.pages) {
-          Object.assign(this.pageInfo[page.descore()], editData.pages[page]);
+          Object.assign(this.entityInfo[page.descore()], editData.pages[page]);
         }
-        dfd.resolve(this.pageInfo);
+        dfd.resolve(this.entityInfo);
       }).fail(() => {
-        dfd.resolve(this.pageInfo); // treat as if successful, simply won't show the data
+        dfd.resolve(this.entityInfo); // treat as if successful, simply won't show the data
       });
     }).fail(() => {
       dfd.resolve({}); // same, simply won't show the data if it failed
