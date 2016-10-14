@@ -5,6 +5,10 @@
  * @license MIT License: https://opensource.org/licenses/MIT
  */
 
+/** class-less files with global overrides */
+require('./core_extensions');
+require('./polyfills');
+
 const PvConfig = require('./pv_config');
 const siteMap = require('./site_map');
 const siteDomains = Object.keys(siteMap).map(key => siteMap[key]);

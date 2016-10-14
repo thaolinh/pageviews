@@ -19,14 +19,13 @@
   border: 3px solid #ccc;
   border-radius: 50%;
   border-top-color: transparent;
-  bottom: 0;
   content: '';
   height: 60px;
   left: 0;
   margin: auto;
   position: absolute;
   right: 0;
-  top: 0;
+  top: 40px;
   width: 60px;
 }
 
@@ -35,19 +34,38 @@ body {
   overflow-x: hidden;
 }
 
+.top-nav {
+  border-bottom: 1px solid #ddd;
+}
+.top-nav > * {
+  vertical-align: middle;
+}
+.top-nav .nav-tabs {
+  border-bottom: 0;
+  display: inline-block;
+}
+.top-nav .home-link {
+  background: url("images/logo.svg") no-repeat;
+  background-size: 36px;
+  display: inline-block;
+  height: 36px;
+  margin-left: 4px;
+  margin-right: 6px;
+  position: relative;
+  top: 1px;
+  width: 36px;
+}
+
 .nav-tabs .active a {
   background: transparent !important;
   border-color: transparent !important;
 }
 
-.nav-buttons {
-  padding: 6px;
-}
 .nav-buttons > * {
+  bottom: 1px;
   margin-right: 6px;
-}
-.nav-buttons > *:last-child {
-  margin: 0;
+  margin-top: 7px;
+  position: relative;
 }
 
 .site-header {
@@ -97,14 +115,13 @@ select {
   border: 3px solid #ccc;
   border-radius: 50%;
   border-top-color: transparent;
-  bottom: 0;
   content: '';
   height: 60px;
   left: 0;
   margin: auto;
   position: absolute;
   right: 0;
-  top: 0;
+  top: 40px;
   width: 60px;
 }
 .rtl .container {
@@ -247,8 +264,7 @@ select {
 }
 
 .aqs-select2-selector {
-  display: block;
-  height: 34px !important;
+  display: none;
 }
 
 .select2-container {
@@ -380,6 +396,16 @@ footer {
   max-height: 194px;
   overflow-y: scroll;
 }
+.lang-group .btn {
+  padding-left: 26px;
+}
+.lang-group svg {
+  height: 15px;
+  left: 8px;
+  position: absolute;
+  top: 6px;
+  width: 15px;
+}
 
 .bm {
   margin-bottom: 15px;
@@ -441,6 +467,28 @@ footer {
   margin-right: 4px;
 }
 
+.sort-link {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
+.sort-link .glyphicon {
+  top: 2px;
+  visibility: hidden;
+}
+.sort-link .glyphicon-sort-by-alphabet,
+.sort-link .glyphicon-sort-by-alphabet-alt,
+.sort-link .glyphicon-sort-by-order,
+.sort-link .glyphicon-sort-by-order-alt {
+  visibility: visible;
+}
+.sort-link:hover .glyphicon-sort {
+  visibility: visible;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -462,14 +510,13 @@ footer {
   border: 3px solid #ccc;
   border-radius: 50%;
   border-top-color: transparent;
-  bottom: 0;
   content: '';
   height: 60px;
   left: 0;
   margin: auto;
   position: absolute;
   right: 0;
-  top: 0;
+  top: 40px;
   width: 60px;
 }
 
@@ -494,14 +541,13 @@ footer {
   border: 3px solid #ccc;
   border-radius: 50%;
   border-top-color: transparent;
-  bottom: 0;
   content: '';
   height: 60px;
   left: 0;
   margin: auto;
   position: absolute;
   right: 0;
-  top: 0;
+  top: 40px;
   width: 60px;
 }
 
@@ -524,10 +570,6 @@ main.complete form {
   opacity: 0;
 }
 main.complete output {
-  -webkit-transform: translateY(0%);
-  -moz-transform: translateY(0%);
-  -ms-transform: translateY(0%);
-  -o-transform: translateY(0%);
   transform: translateY(0%);
   opacity: 1;
 }
@@ -539,15 +581,7 @@ main.complete .data-links {
 }
 
 output {
-  -webkit-transform: translateY(500px);
-  -moz-transform: translateY(500px);
-  -ms-transform: translateY(500px);
-  -o-transform: translateY(500px);
   transform: translateY(500px);
-  -webkit-transition: all 500ms ease;
-  -moz-transition: all 500ms ease;
-  -ms-transition: all 500ms ease;
-  -o-transition: all 500ms ease;
   transition: all 500ms ease;
   margin-bottom: 10px;
   opacity: 0;
@@ -585,28 +619,6 @@ output .output-table td {
 
 .chart-mode .chart-view {
   display: block;
-}
-
-.sort-link {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -o-user-select: none;
-  user-select: none;
-  cursor: pointer;
-}
-.sort-link .glyphicon {
-  top: 2px;
-  visibility: hidden;
-}
-.sort-link .glyphicon-sort-by-alphabet,
-.sort-link .glyphicon-sort-by-alphabet-alt,
-.sort-link .glyphicon-sort-by-order,
-.sort-link .glyphicon-sort-by-order-alt {
-  visibility: visible;
-}
-.sort-link:hover .glyphicon-sort {
-  visibility: visible;
 }
 
 .another-query {
@@ -681,14 +693,13 @@ output .output-table td {
   border: 3px solid #ccc;
   border-radius: 50%;
   border-top-color: transparent;
-  bottom: 0;
   content: '';
   height: 60px;
   left: 0;
   margin: auto;
   position: absolute;
   right: 0;
-  top: 0;
+  top: 40px;
   width: 60px;
 }
 
@@ -806,19 +817,22 @@ output .output-table td {
   width: 100%;
 }
 
+.chart-legend {
+  padding: 0;
+}
+.chart-legend hr {
+  margin: 10px 0 5px;
+}
+.chart-legend .legend-block {
+  padding-bottom: 10px;
+}
+
 .linear-legend {
-  background: #fff;
-  border: solid 1px #ccc;
   border-radius: 5px;
-  float: left;
   line-height: 15px;
   margin-bottom: 6px;
-  margin-right: 6px;
   overflow: hidden;
-  width: calc(100% / 3 - 4px);
-}
-.linear-legend:nth-child(3n) {
-  margin: 0;
+  width: 100%;
 }
 .linear-legend a {
   float: none;
@@ -829,12 +843,13 @@ output .output-table td {
 }
 
 .linear-legend--label {
+  margin-bottom: 5px;
   padding: 5px 10px;
   width: 100%;
 }
 
 .linear-legend--counts {
-  padding: 5px 10px 0;
+  margin-bottom: 5px;
 }
 
 .linear-legend--links {

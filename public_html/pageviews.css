@@ -264,8 +264,7 @@ select {
 }
 
 .aqs-select2-selector {
-  display: block;
-  height: 34px !important;
+  display: none;
 }
 
 .select2-container {
@@ -396,6 +395,16 @@ footer {
   background: #fff;
   max-height: 194px;
   overflow-y: scroll;
+}
+.lang-group .btn {
+  padding-left: 26px;
+}
+.lang-group svg {
+  height: 15px;
+  left: 8px;
+  position: absolute;
+  top: 6px;
+  width: 15px;
 }
 
 .bm {
