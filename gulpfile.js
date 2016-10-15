@@ -97,8 +97,8 @@ apps.forEach(app => {
 apps.forEach(app => {
   gulp.task(`css-sass-${app}`, () => {
     const path = app === 'pageviews' ? '' : `${app}/`;
-    console.log(`stylesheets/${path}${app}.scss`);
-    return plugins.rubySass(`stylesheets/${path}${app}.scss`, { style: 'expanded' })
+    return gulp.src(`stylesheets/${path}${app}.scss`)
+      .pipe(plugins.sass().on('error', plugins.sass.logError))
       .pipe(plugins.autoprefixer('last 2 version'))
       .pipe(gulp.dest(`public_html/${path}`))
       .pipe(plugins.cssnano());
@@ -215,6 +215,9 @@ gulp.task('watch', () => {
   // compile all apps if shared files are altered
   gulp.watch('stylesheets/_*.scss', ['styles']);
   gulp.watch('javascripts/shared/*.js', ['scripts']);
+
+  // one just for pageviews.scss
+  gulp.watch('stylesheets/pageviews.scss', ['styles-pageviews']);
 
   apps.forEach(app => {
     gulp.watch(`stylesheets/${app}/*.scss`, [`styles-${app}`]);
