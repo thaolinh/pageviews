@@ -158,12 +158,16 @@ apps.forEach(app => {
   gulp.task(`views-${app}`, () => {
     return gulp.src(`views/${path}*.haml`, {read: false})
       .pipe(plugins.shell([
+        'echo Compiling <%= name(file.path) %> to <%= target(file.path) %>',
         'php haml.php -d -t php <%= file.path %> <%= target(file.path) %>'
       ], {
         templateData: {
           target: path => {
             return path.replace('pageviews/views', 'pageviews/public_html')
               .replace(/\.haml$/, '.php');
+          },
+          name: path => {
+            return path.split('/').slice(-1)[0];
           }
         }
       }));
@@ -176,6 +180,27 @@ apps.forEach(app => {
       plugins.uglify(),
       gulp.dest(`public_html/${path}`)
     ], cb);
+  });
+});
+
+// one off's for faq_parts and url_parts views
+['faq_parts', 'url_parts'].forEach(path => {
+  gulp.task(`views-${path}`, () => {
+    return gulp.src(`views/${path}/*.haml`, {read: false})
+      .pipe(plugins.shell([
+        'echo Compiling <%= name(file.path) %> to <%= target(file.path) %>',
+        'php haml.php -d -t php <%= file.path %> <%= target(file.path) %>'
+      ], {
+        templateData: {
+          target: path => {
+            return path.replace('pageviews/views', 'pageviews/public_html')
+              .replace(/\.haml$/, '.php');
+          },
+          name: path => {
+            return path.split('/').slice(-1)[0];
+          }
+        }
+      }));
   });
 });
 
@@ -195,7 +220,7 @@ gulp.task('scsslint', () => {
 gulp.task('lint', ['eslint', 'scsslint']);
 gulp.task('styles', apps.map(app => `styles-${app}`));
 gulp.task('scripts', apps.map(app => `scripts-${app}`));
-gulp.task('views', apps.map(app => `haml-${app}`));
+gulp.task('views', apps.concat(['faq_parts', 'url_parts']).map(app => `views-${app}`));
 gulp.task('compress', apps.map(app => `compress-${app}`));
 
 apps.forEach(app => {
@@ -206,13 +231,12 @@ gulp.task('watch', () => {
   // compile all apps if shared files are altered
   gulp.watch('stylesheets/_*.scss', ['styles']);
   gulp.watch('javascripts/shared/*.js', ['scripts']);
-  gulp.watch('views/**/_*.haml', ['haml']);
 
-  apps.forEach(app => {
+  apps.concat(['faq_parts', 'url_parts']).forEach(app => {
     const path = app === 'pageviews' ? '' : `${app}/`;
     gulp.watch(`stylesheets/${path}*.scss`, [`styles-${app}`]);
     gulp.watch(`javascripts/${path}*.js`, [`scripts-${app}`]);
-    gulp.watch(`views/${path}*.haml`, [`haml-${app}`]);
+    gulp.watch(`views/${path}*.haml`, [`views-${app}`]);
   });
 });
 
