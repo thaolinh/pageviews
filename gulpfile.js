@@ -89,6 +89,11 @@ apps.forEach(app => {
   const path = app === 'pageviews' ? '' : `${app}/`;
 
   /** STYLES */
+  const coreCSSDependencies = [
+    'vendor/stylesheets/bootstrap.min.css',
+    'vendor/stylesheets/toastr.css',
+    'vendor/stylesheets/font-awesome.min.css'
+  ];
   gulp.task(`styles-${app}`, () => {
     runSequence(`css-sass-${app}`, `css-concat-${app}`);
   });
@@ -96,15 +101,9 @@ apps.forEach(app => {
     return gulp.src(`stylesheets/${path}${app}.scss`)
       .pipe(plugins.sass().on('error', plugins.sass.logError))
       .pipe(plugins.autoprefixer('last 2 version'))
-      .pipe(gulp.dest(`public_html/${path}`))
-      .pipe(plugins.cssnano());
+      .pipe(gulp.dest(`public_html/${path}`));
   });
   gulp.task(`css-concat-${app}`, () => {
-    const coreCSSDependencies = [
-      'vendor/stylesheets/bootstrap.min.css',
-      'vendor/stylesheets/toastr.css',
-      'vendor/stylesheets/font-awesome.min.css'
-    ];
     return gulp.src(coreCSSDependencies
         .concat(appDependencies[app].css)
         .concat([`public_html/${path}${app}.css`])
@@ -113,8 +112,35 @@ apps.forEach(app => {
       .pipe(gulp.dest(`public_html/${path}`))
       .pipe(plugins.notify('Styles task complete'));
   });
+  gulp.task(`styles-${app}-help`, [`styles-${app}-faq`, `styles-${app}-url_structure`]);
+  ['faq', 'url_structure'].forEach(helpPage => {
+    gulp.task(`styles-${app}-${helpPage}`, () => {
+      runSequence(`css-sass-${app}-${helpPage}`, `css-concat-${app}-${helpPage}`);
+    });
+    gulp.task(`css-sass-${app}-${helpPage}`, () => {
+      return gulp.src(`stylesheets/${path}${helpPage}.scss`)
+        .pipe(plugins.sass().on('error', plugins.sass.logError))
+        .pipe(plugins.autoprefixer('last 2 version'))
+        .pipe(gulp.dest(`public_html/${path}${helpPage}`));
+    });
+    gulp.task(`css-concat-${app}-${helpPage}`, () => {
+      return gulp.src(coreCSSDependencies
+          .concat([`public_html/${path}${helpPage}/${helpPage}.css`])
+        )
+        .pipe(plugins.concat('application.css'))
+        .pipe(gulp.dest(`public_html/${path}${helpPage}`));
+    });
+  });
 
   /** SCRIPTS */
+  const coreJSDependencies = [
+    'vendor/javascripts/jquery.min.js',
+    'public_html/jquery.i18n.js', // needs to be here for relative paths to i18n messages
+    'vendor/javascripts/moment.min.js',
+    'vendor/javascripts/bootstrap.min.js',
+    'vendor/javascripts/toastr.min.js',
+    'vendor/javascripts/simpleStorage.js'
+  ];
   gulp.task(`scripts-${app}`, () => {
     runSequence(`js-browserify-${app}`, `js-concat-${app}`);
   });
@@ -137,53 +163,60 @@ apps.forEach(app => {
     rebundle();
   });
   gulp.task(`js-concat-${app}`, () => {
-    const coreJSDependencies = [
-      'vendor/javascripts/jquery.min.js',
-      'public_html/jquery.i18n.js',
-      'vendor/javascripts/moment.min.js',
-      'vendor/javascripts/bootstrap.min.js',
-      'vendor/javascripts/toastr.min.js',
-      'vendor/javascripts/simpleStorage.js'
-    ];
     return gulp.src(coreJSDependencies
         .concat(appDependencies[app].js)
         .concat([`public_html/${path}${app}.js`])
       )
       .pipe(plugins.concat('application.js'))
-      .pipe(gulp.dest(`public_html/${path}`))
-      .pipe(plugins.notify('Scripts task complete'));
+      .pipe(gulp.dest(`public_html/${path}`));
+  });
+  gulp.task(`scripts-${app}-help`, [`scripts-${app}-faq`, `scripts-${app}-url_structure`]);
+  ['faq', 'url_structure'].forEach(helpPage => {
+    gulp.task(`scripts-${app}-${helpPage}`, () => {
+      return gulp.src(coreJSDependencies)
+        .pipe(plugins.concat('application.js'))
+        .pipe(gulp.dest(`public_html/${path}${helpPage}`));
+    });
   });
 
   /** VIEWS */
+  const fileName = path => path.split('/').slice(-1)[0];
   gulp.task(`views-${app}`, () => {
     return gulp.src(`views/${path}*.haml`, {read: false})
       .pipe(plugins.shell([
-        'echo Compiling <%= name(file.path) %> to <%= target(file.path) %>',
+        // 'echo Compiling <%= name(file.path) %> to <%= target(file.path) %>',
         'php haml.php -d -t php <%= file.path %> <%= target(file.path) %>'
       ], {
         templateData: {
           target: path => {
-            return path.replace('pageviews/views', 'pageviews/public_html')
-              .replace(/\.haml$/, '.php');
+            let newPath = path.replace('pageviews/views', 'pageviews/public_html');
+            if (/(faq|url_structure)\.haml$/.test(fileName(path))) {
+              newPath = newPath.replace(/\.haml$/, '/index.php');
+            }
+            return newPath.replace(/\.haml$/, '.php');
           },
-          name: path => {
-            return path.split('/').slice(-1)[0];
-          }
+          name: path => fileName(path)
         }
       }));
   });
 
   /** COMPRESSION */
-  gulp.task(`compress-${app}`, cb => {
+  gulp.task(`compress-${app}`, [`compress-styles-${app}`, `compress-scripts-${app}`]);
+  gulp.task(`compress-scripts-${app}`, cb => {
     pump([
       gulp.src(`public_html/${path}application.js`),
       plugins.uglify(),
       gulp.dest(`public_html/${path}`)
     ], cb);
   });
+  gulp.task(`compress-styles-${app}`, cb => {
+    return gulp.src(`public_html/${path}application.css`)
+      .pipe(plugins.cssnano())
+      .pipe(gulp.dest(`public_html/${path}`));
+  });
 });
 
-// one off's for faq_parts and url_parts views
+// special handling for faq_parts and url_parts
 ['faq_parts', 'url_parts'].forEach(path => {
   gulp.task(`views-${path}`, () => {
     return gulp.src(`views/${path}/*.haml`, {read: false})
@@ -224,7 +257,9 @@ gulp.task('views', apps.concat(['faq_parts', 'url_parts']).map(app => `views-${a
 gulp.task('compress', apps.map(app => `compress-${app}`));
 
 apps.forEach(app => {
-  gulp.task(app, [`styles-${app}`, `scripts-${app}`, `views-${app}`, `compress-${app}`]);
+  gulp.task(app, [
+    `styles-${app}`, `styles-${app}-help`, `scripts-${app}`, `scripts-${app}-help`, `views-${app}`
+  ]);
 });
 
 gulp.task('watch', () => {

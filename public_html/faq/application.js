@@ -1391,3 +1391,526 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 d.trigger("activate.bs.scrollspy")},b.prototype.clear=function(){a(this.selector).parentsUntil(this.options.target,".active").removeClass("active")};var d=a.fn.scrollspy;a.fn.scrollspy=c,a.fn.scrollspy.Constructor=b,a.fn.scrollspy.noConflict=function(){return a.fn.scrollspy=d,this},a(window).on("load.bs.scrollspy.data-api",function(){a('[data-spy="scroll"]').each(function(){var b=a(this);c.call(b,b.data())})})}(jQuery),+function(a){"use strict";function b(b){return this.each(function(){var d=a(this),e=d.data("bs.tab");e||d.data("bs.tab",e=new c(this)),"string"==typeof b&&e[b]()})}var c=function(b){this.element=a(b)};c.VERSION="3.3.5",c.TRANSITION_DURATION=150,c.prototype.show=function(){var b=this.element,c=b.closest("ul:not(.dropdown-menu)"),d=b.data("target");if(d||(d=b.attr("href"),d=d&&d.replace(/.*(?=#[^\s]*$)/,"")),!b.parent("li").hasClass("active")){var e=c.find(".active:last a"),f=a.Event("hide.bs.tab",{relatedTarget:b[0]}),g=a.Event("show.bs.tab",{relatedTarget:e[0]});if(e.trigger(f),b.trigger(g),!g.isDefaultPrevented()&&!f.isDefaultPrevented()){var h=a(d);this.activate(b.closest("li"),c),this.activate(h,h.parent(),function(){e.trigger({type:"hidden.bs.tab",relatedTarget:b[0]}),b.trigger({type:"shown.bs.tab",relatedTarget:e[0]})})}}},c.prototype.activate=function(b,d,e){function f(){g.removeClass("active").find("> .dropdown-menu > .active").removeClass("active").end().find('[data-toggle="tab"]').attr("aria-expanded",!1),b.addClass("active").find('[data-toggle="tab"]').attr("aria-expanded",!0),h?(b[0].offsetWidth,b.addClass("in")):b.removeClass("fade"),b.parent(".dropdown-menu").length&&b.closest("li.dropdown").addClass("active").end().find('[data-toggle="tab"]').attr("aria-expanded",!0),e&&e()}var g=d.find("> .active"),h=e&&a.support.transition&&(g.length&&g.hasClass("fade")||!!d.find("> .fade").length);g.length&&h?g.one("bsTransitionEnd",f).emulateTransitionEnd(c.TRANSITION_DURATION):f(),g.removeClass("in")};var d=a.fn.tab;a.fn.tab=b,a.fn.tab.Constructor=c,a.fn.tab.noConflict=function(){return a.fn.tab=d,this};var e=function(c){c.preventDefault(),b.call(a(this),"show")};a(document).on("click.bs.tab.data-api",'[data-toggle="tab"]',e).on("click.bs.tab.data-api",'[data-toggle="pill"]',e)}(jQuery),+function(a){"use strict";function b(b){return this.each(function(){var d=a(this),e=d.data("bs.affix"),f="object"==typeof b&&b;e||d.data("bs.affix",e=new c(this,f)),"string"==typeof b&&e[b]()})}var c=function(b,d){this.options=a.extend({},c.DEFAULTS,d),this.$target=a(this.options.target).on("scroll.bs.affix.data-api",a.proxy(this.checkPosition,this)).on("click.bs.affix.data-api",a.proxy(this.checkPositionWithEventLoop,this)),this.$element=a(b),this.affixed=null,this.unpin=null,this.pinnedOffset=null,this.checkPosition()};c.VERSION="3.3.5",c.RESET="affix affix-top affix-bottom",c.DEFAULTS={offset:0,target:window},c.prototype.getState=function(a,b,c,d){var e=this.$target.scrollTop(),f=this.$element.offset(),g=this.$target.height();if(null!=c&&"top"==this.affixed)return c>e?"top":!1;if("bottom"==this.affixed)return null!=c?e+this.unpin<=f.top?!1:"bottom":a-d>=e+g?!1:"bottom";var h=null==this.affixed,i=h?e:f.top,j=h?g:b;return null!=c&&c>=e?"top":null!=d&&i+j>=a-d?"bottom":!1},c.prototype.getPinnedOffset=function(){if(this.pinnedOffset)return this.pinnedOffset;this.$element.removeClass(c.RESET).addClass("affix");var a=this.$target.scrollTop(),b=this.$element.offset();return this.pinnedOffset=b.top-a},c.prototype.checkPositionWithEventLoop=function(){setTimeout(a.proxy(this.checkPosition,this),1)},c.prototype.checkPosition=function(){if(this.$element.is(":visible")){var b=this.$element.height(),d=this.options.offset,e=d.top,f=d.bottom,g=Math.max(a(document).height(),a(document.body).height());"object"!=typeof d&&(f=e=d),"function"==typeof e&&(e=d.top(this.$element)),"function"==typeof f&&(f=d.bottom(this.$element));var h=this.getState(g,b,e,f);if(this.affixed!=h){null!=this.unpin&&this.$element.css("top","");var i="affix"+(h?"-"+h:""),j=a.Event(i+".bs.affix");if(this.$element.trigger(j),j.isDefaultPrevented())return;this.affixed=h,this.unpin="bottom"==h?this.getPinnedOffset():null,this.$element.removeClass(c.RESET).addClass(i).trigger(i.replace("affix","affixed")+".bs.affix")}"bottom"==h&&this.$element.offset({top:g-b-f})}};var d=a.fn.affix;a.fn.affix=b,a.fn.affix.Constructor=c,a.fn.affix.noConflict=function(){return a.fn.affix=d,this},a(window).on("load",function(){a('[data-spy="affix"]').each(function(){var c=a(this),d=c.data();d.offset=d.offset||{},null!=d.offsetBottom&&(d.offset.bottom=d.offsetBottom),null!=d.offsetTop&&(d.offset.top=d.offsetTop),b.call(c,d)})})}(jQuery);
 !function(e){e(["jquery"],function(e){return function(){function t(e,t,n){return g({type:O.error,iconClass:m().iconClasses.error,message:e,optionsOverride:n,title:t})}function n(t,n){return t||(t=m()),v=e("#"+t.containerId),v.length?v:(n&&(v=d(t)),v)}function o(e,t,n){return g({type:O.info,iconClass:m().iconClasses.info,message:e,optionsOverride:n,title:t})}function s(e){C=e}function i(e,t,n){return g({type:O.success,iconClass:m().iconClasses.success,message:e,optionsOverride:n,title:t})}function a(e,t,n){return g({type:O.warning,iconClass:m().iconClasses.warning,message:e,optionsOverride:n,title:t})}function r(e,t){var o=m();v||n(o),u(e,o,t)||l(o)}function c(t){var o=m();return v||n(o),t&&0===e(":focus",t).length?void h(t):void(v.children().length&&v.remove())}function l(t){for(var n=v.children(),o=n.length-1;o>=0;o--)u(e(n[o]),t)}function u(t,n,o){var s=!(!o||!o.force)&&o.force;return!(!t||!s&&0!==e(":focus",t).length)&&(t[n.hideMethod]({duration:n.hideDuration,easing:n.hideEasing,complete:function(){h(t)}}),!0)}function d(t){return v=e("<div/>").attr("id",t.containerId).addClass(t.positionClass),v.appendTo(e(t.target)),v}function p(){return{tapToDismiss:!0,toastClass:"toast",containerId:"toast-container",debug:!1,showMethod:"fadeIn",showDuration:300,showEasing:"swing",onShown:void 0,hideMethod:"fadeOut",hideDuration:1e3,hideEasing:"swing",onHidden:void 0,closeMethod:!1,closeDuration:!1,closeEasing:!1,closeOnHover:!0,extendedTimeOut:1e3,iconClasses:{error:"toast-error",info:"toast-info",success:"toast-success",warning:"toast-warning"},iconClass:"toast-info",positionClass:"toast-top-right",timeOut:5e3,titleClass:"toast-title",messageClass:"toast-message",escapeHtml:!1,target:"body",closeHtml:'<button type="button">&times;</button>',closeClass:"toast-close-button",newestOnTop:!0,preventDuplicates:!1,progressBar:!1,progressClass:"toast-progress",rtl:!1}}function f(e){C&&C(e)}function g(t){function o(e){return null==e&&(e=""),e.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}function s(){c(),u(),d(),p(),g(),C(),l(),i()}function i(){var e="";switch(t.iconClass){case"toast-success":case"toast-info":e="polite";break;default:e="assertive"}I.attr("aria-live",e)}function a(){E.closeOnHover&&I.hover(H,D),!E.onclick&&E.tapToDismiss&&I.click(b),E.closeButton&&j&&j.click(function(e){e.stopPropagation?e.stopPropagation():void 0!==e.cancelBubble&&e.cancelBubble!==!0&&(e.cancelBubble=!0),E.onCloseClick&&E.onCloseClick(e),b(!0)}),E.onclick&&I.click(function(e){E.onclick(e),b()})}function r(){I.hide(),I[E.showMethod]({duration:E.showDuration,easing:E.showEasing,complete:E.onShown}),E.timeOut>0&&(k=setTimeout(b,E.timeOut),F.maxHideTime=parseFloat(E.timeOut),F.hideEta=(new Date).getTime()+F.maxHideTime,E.progressBar&&(F.intervalId=setInterval(x,10)))}function c(){t.iconClass&&I.addClass(E.toastClass).addClass(y)}function l(){E.newestOnTop?v.prepend(I):v.append(I)}function u(){if(t.title){var e=t.title;E.escapeHtml&&(e=o(t.title)),M.append(e).addClass(E.titleClass),I.append(M)}}function d(){if(t.message){var e=t.message;E.escapeHtml&&(e=o(t.message)),B.append(e).addClass(E.messageClass),I.append(B)}}function p(){E.closeButton&&(j.addClass(E.closeClass).attr("role","button"),I.prepend(j))}function g(){E.progressBar&&(q.addClass(E.progressClass),I.prepend(q))}function C(){E.rtl&&I.addClass("rtl")}function O(e,t){if(e.preventDuplicates){if(t.message===w)return!0;w=t.message}return!1}function b(t){var n=t&&E.closeMethod!==!1?E.closeMethod:E.hideMethod,o=t&&E.closeDuration!==!1?E.closeDuration:E.hideDuration,s=t&&E.closeEasing!==!1?E.closeEasing:E.hideEasing;if(!e(":focus",I).length||t)return clearTimeout(F.intervalId),I[n]({duration:o,easing:s,complete:function(){h(I),clearTimeout(k),E.onHidden&&"hidden"!==P.state&&E.onHidden(),P.state="hidden",P.endTime=new Date,f(P)}})}function D(){(E.timeOut>0||E.extendedTimeOut>0)&&(k=setTimeout(b,E.extendedTimeOut),F.maxHideTime=parseFloat(E.extendedTimeOut),F.hideEta=(new Date).getTime()+F.maxHideTime)}function H(){clearTimeout(k),F.hideEta=0,I.stop(!0,!0)[E.showMethod]({duration:E.showDuration,easing:E.showEasing})}function x(){var e=(F.hideEta-(new Date).getTime())/F.maxHideTime*100;q.width(e+"%")}var E=m(),y=t.iconClass||E.iconClass;if("undefined"!=typeof t.optionsOverride&&(E=e.extend(E,t.optionsOverride),y=t.optionsOverride.iconClass||y),!O(E,t)){T++,v=n(E,!0);var k=null,I=e("<div/>"),M=e("<div/>"),B=e("<div/>"),q=e("<div/>"),j=e(E.closeHtml),F={intervalId:null,hideEta:null,maxHideTime:null},P={toastId:T,state:"visible",startTime:new Date,options:E,map:t};return s(),r(),a(),f(P),E.debug&&console&&console.log(P),I}}function m(){return e.extend({},p(),b.options)}function h(e){v||(v=n()),e.is(":visible")||(e.remove(),e=null,0===v.children().length&&(v.remove(),w=void 0))}var v,C,w,T=0,O={error:"error",info:"info",success:"success",warning:"warning"},b={clear:r,remove:c,error:t,getContainer:n,info:o,options:{},subscribe:s,success:i,version:"2.1.3",warning:a};return b}()})}("function"==typeof define&&define.amd?define:function(e,t){"undefined"!=typeof module&&module.exports?module.exports=t(require("jquery")):window.toastr=t(window.jQuery)});
 //# sourceMappingURL=toastr.js.map
+
+/* jshint browser: true */
+/* global define: false, module: false */
+
+// AMD shim
+(function(root, factory) {
+
+    'use strict';
+
+    if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else if (typeof exports !== 'undefined') {
+        module.exports = factory();
+    } else {
+        root.simpleStorage = factory();
+    }
+
+}(this, function() {
+
+    'use strict';
+
+    var VERSION = '0.2.1';
+
+    /* This is the object, that holds the cached values */
+    var _storage = false;
+
+    /* How much space does the storage take */
+    var _storage_size = 0;
+
+    var _storage_available = false;
+    var _ttl_timeout = null;
+
+    var _lsStatus = 'OK';
+    var LS_NOT_AVAILABLE = 'LS_NOT_AVAILABLE';
+    var LS_DISABLED = 'LS_DISABLED';
+    var LS_QUOTA_EXCEEDED = 'LS_QUOTA_EXCEEDED';
+
+    // This method might throw as it touches localStorage and doing so
+    // can be prohibited in some environments
+    function _init() {
+
+        // this method throws if localStorage is not usable, otherwise returns true
+        _storage_available = _checkAvailability();
+
+        // Load data from storage
+        _loadStorage();
+
+        // remove dead keys
+        _handleTTL();
+
+        // start listening for changes
+        _setupUpdateObserver();
+
+        // handle cached navigation
+        if ('addEventListener' in window) {
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    _reloadData();
+                }
+            }, false);
+        }
+
+        _storage_available = true;
+    }
+
+    /**
+     * Sets up a storage change observer
+     */
+    function _setupUpdateObserver() {
+        if ('addEventListener' in window) {
+            window.addEventListener('storage', _reloadData, false);
+        } else {
+            document.attachEvent('onstorage', _reloadData);
+        }
+    }
+
+    /**
+     * Reload data from storage when needed
+     */
+    function _reloadData() {
+        try {
+            _loadStorage();
+        } catch (E) {
+            _storage_available = false;
+            return;
+        }
+        _handleTTL();
+    }
+
+    function _loadStorage() {
+        var source = localStorage.getItem('simpleStorage');
+
+        try {
+            _storage = JSON.parse(source) || {};
+        } catch (E) {
+            _storage = {};
+        }
+
+        _storage_size = _get_storage_size();
+    }
+
+    function _save() {
+        try {
+            localStorage.setItem('simpleStorage', JSON.stringify(_storage));
+            _storage_size = _get_storage_size();
+        } catch (E) {
+            return _formatError(E);
+        }
+        return true;
+    }
+
+    function _get_storage_size() {
+        var source = localStorage.getItem('simpleStorage');
+        return source ? String(source).length : 0;
+    }
+
+    function _handleTTL() {
+        var curtime, i, len, expire, keys, nextExpire = Infinity,
+            expiredKeysCount = 0;
+
+        clearTimeout(_ttl_timeout);
+
+        if (!_storage || !_storage.__simpleStorage_meta || !_storage.__simpleStorage_meta.TTL) {
+            return;
+        }
+
+        curtime = +new Date();
+        keys = _storage.__simpleStorage_meta.TTL.keys || [];
+        expire = _storage.__simpleStorage_meta.TTL.expire || {};
+
+        for (i = 0, len = keys.length; i < len; i++) {
+            if (expire[keys[i]] <= curtime) {
+                expiredKeysCount++;
+                delete _storage[keys[i]];
+                delete expire[keys[i]];
+            } else {
+                if (expire[keys[i]] < nextExpire) {
+                    nextExpire = expire[keys[i]];
+                }
+                break;
+            }
+        }
+
+        // set next check
+        if (nextExpire !== Infinity) {
+            _ttl_timeout = setTimeout(_handleTTL, Math.min(nextExpire - curtime, 0x7FFFFFFF));
+        }
+
+        // remove expired from TTL list and save changes
+        if (expiredKeysCount) {
+            keys.splice(0, expiredKeysCount);
+
+            _cleanMetaObject();
+            _save();
+        }
+    }
+
+    function _setTTL(key, ttl) {
+        var curtime = +new Date(),
+            i, len, added = false;
+
+        ttl = Number(ttl) || 0;
+
+        // Set TTL value for the key
+        if (ttl !== 0) {
+            // If key exists, set TTL
+            if (_storage.hasOwnProperty(key)) {
+
+                if (!_storage.__simpleStorage_meta) {
+                    _storage.__simpleStorage_meta = {};
+                }
+
+                if (!_storage.__simpleStorage_meta.TTL) {
+                    _storage.__simpleStorage_meta.TTL = {
+                        expire: {},
+                        keys: []
+                    };
+                }
+
+                _storage.__simpleStorage_meta.TTL.expire[key] = curtime + ttl;
+
+                // find the expiring key in the array and remove it and all before it (because of sort)
+                if (_storage.__simpleStorage_meta.TTL.expire.hasOwnProperty(key)) {
+                    for (i = 0, len = _storage.__simpleStorage_meta.TTL.keys.length; i < len; i++) {
+                        if (_storage.__simpleStorage_meta.TTL.keys[i] === key) {
+                            _storage.__simpleStorage_meta.TTL.keys.splice(i);
+                        }
+                    }
+                }
+
+                // add key to keys array preserving sort (soonest first)
+                for (i = 0, len = _storage.__simpleStorage_meta.TTL.keys.length; i < len; i++) {
+                    if (_storage.__simpleStorage_meta.TTL.expire[_storage.__simpleStorage_meta.TTL.keys[i]] > (curtime + ttl)) {
+                        _storage.__simpleStorage_meta.TTL.keys.splice(i, 0, key);
+                        added = true;
+                        break;
+                    }
+                }
+
+                // if not added in previous loop, add here
+                if (!added) {
+                    _storage.__simpleStorage_meta.TTL.keys.push(key);
+                }
+            } else {
+                return false;
+            }
+        } else {
+            // Remove TTL if set
+            if (_storage && _storage.__simpleStorage_meta && _storage.__simpleStorage_meta.TTL) {
+
+                if (_storage.__simpleStorage_meta.TTL.expire.hasOwnProperty(key)) {
+                    delete _storage.__simpleStorage_meta.TTL.expire[key];
+                    for (i = 0, len = _storage.__simpleStorage_meta.TTL.keys.length; i < len; i++) {
+                        if (_storage.__simpleStorage_meta.TTL.keys[i] === key) {
+                            _storage.__simpleStorage_meta.TTL.keys.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+
+                _cleanMetaObject();
+            }
+        }
+
+        // schedule next TTL check
+        clearTimeout(_ttl_timeout);
+        if (_storage && _storage.__simpleStorage_meta && _storage.__simpleStorage_meta.TTL && _storage.__simpleStorage_meta.TTL.keys.length) {
+            _ttl_timeout = setTimeout(_handleTTL, Math.min(Math.max(_storage.__simpleStorage_meta.TTL.expire[_storage.__simpleStorage_meta.TTL.keys[0]] - curtime, 0), 0x7FFFFFFF));
+        }
+
+        return true;
+    }
+
+    function _cleanMetaObject() {
+        var updated = false,
+            hasProperties = false,
+            i;
+
+        if (!_storage || !_storage.__simpleStorage_meta) {
+            return updated;
+        }
+
+        // If nothing to TTL, remove the object
+        if (_storage.__simpleStorage_meta.TTL && !_storage.__simpleStorage_meta.TTL.keys.length) {
+            delete _storage.__simpleStorage_meta.TTL;
+            updated = true;
+        }
+
+        // If meta object is empty, remove it
+        for (i in _storage.__simpleStorage_meta) {
+            if (_storage.__simpleStorage_meta.hasOwnProperty(i)) {
+                hasProperties = true;
+                break;
+            }
+        }
+
+        if (!hasProperties) {
+            delete _storage.__simpleStorage_meta;
+            updated = true;
+        }
+
+        return updated;
+    }
+
+    /**
+     * Checks if localStorage is available or throws an error
+     */
+    function _checkAvailability() {
+        var err;
+        var items = 0;
+
+        // Firefox sets localStorage to 'null' if support is disabled
+        // IE might go crazy if quota is exceeded and start treating it as 'unknown'
+        if (window.localStorage === null || typeof window.localStorage === 'unknown') {
+            err = new Error('localStorage is disabled');
+            err.code = LS_DISABLED;
+            throw err;
+        }
+
+        // There doesn't seem to be any indication about localStorage support
+        if (!window.localStorage) {
+            err = new Error('localStorage not supported');
+            err.code = LS_NOT_AVAILABLE;
+            throw err;
+        }
+
+        try {
+            items = window.localStorage.length;
+        } catch (E) {
+            throw _formatError(E);
+        }
+
+        try {
+            // we try to set a value to see if localStorage is really usable or not
+            window.localStorage.setItem('__simpleStorageInitTest', Date.now().toString(16));
+            window.localStorage.removeItem('__simpleStorageInitTest');
+        } catch (E) {
+            if (items) {
+                // there is already some data stored, so this might mean that storage is full
+                throw _formatError(E);
+            } else {
+                // we do not have any data stored and we can't add anything new
+                // so we are most probably in Private Browsing mode where
+                // localStorage is turned off in some browsers (max storage size is 0)
+                err = new Error('localStorage is disabled');
+                err.code = LS_DISABLED;
+                throw err;
+            }
+        }
+
+        return true;
+    }
+
+    function _formatError(E) {
+        var err;
+
+        // No more storage:
+        // Mozilla: NS_ERROR_DOM_QUOTA_REACHED, code 1014
+        // WebKit: QuotaExceededError/QUOTA_EXCEEDED_ERR, code 22
+        // IE number -2146828281: Out of memory
+        // IE number -2147024882: Not enough storage is available to complete this operation
+        if (E.code === 22 || E.code === 1014 || [-2147024882, -2146828281, -21474675259].indexOf(E.number) > 0) {
+            err = new Error('localStorage quota exceeded');
+            err.code = LS_QUOTA_EXCEEDED;
+            return err;
+        }
+
+        // SecurityError, localStorage is turned off
+        if (E.code === 18 || E.code === 1000) {
+            err = new Error('localStorage is disabled');
+            err.code = LS_DISABLED;
+            return err;
+        }
+
+        // We are trying to access something from an object that is either null or undefined
+        if (E.name === 'TypeError') {
+            err = new Error('localStorage is disabled');
+            err.code = LS_DISABLED;
+            return err;
+        }
+
+        return E;
+    }
+
+    // Sets value for _lsStatus
+    function _checkError(err) {
+        if (!err) {
+            _lsStatus = 'OK';
+            return err;
+        }
+
+        switch (err.code) {
+            case LS_NOT_AVAILABLE:
+            case LS_DISABLED:
+            case LS_QUOTA_EXCEEDED:
+                _lsStatus = err.code;
+                break;
+            default:
+                _lsStatus = err.code || err.number || err.message || err.name;
+        }
+
+        return err;
+    }
+
+    ////////////////////////// PUBLIC INTERFACE /////////////////////////
+
+    try {
+        _init();
+    } catch (E) {
+        _checkError(E);
+    }
+
+    return {
+
+        version: VERSION,
+
+        status: _lsStatus,
+
+        canUse: function() {
+            return _lsStatus === 'OK' && !!_storage_available;
+        },
+
+        set: function(key, value, options) {
+            if (key === '__simpleStorage_meta') {
+                return false;
+            }
+
+            if (!_storage) {
+                return false;
+            }
+
+            // undefined values are deleted automatically
+            if (typeof value === 'undefined') {
+                return this.deleteKey(key);
+            }
+
+            options = options || {};
+
+            // Check if the value is JSON compatible (and remove reference to existing objects/arrays)
+            try {
+                value = JSON.parse(JSON.stringify(value));
+            } catch (E) {
+                return _formatError(E);
+            }
+
+            _storage[key] = value;
+
+            _setTTL(key, options.TTL || 0);
+
+            return _save();
+        },
+
+        hasKey: function(key) {
+            if (!_storage) {
+                return false;
+            }
+
+            if (_storage.hasOwnProperty(key) && key !== '__simpleStorage_meta') {
+                return true;
+            }
+
+            return false;
+        },
+
+        get: function(key) {
+            if (!_storage) {
+                return false;
+            }
+
+            if (_storage.hasOwnProperty(key) && key !== '__simpleStorage_meta') {
+                // TTL value for an existing key is either a positive number or an Infinity
+                if (this.getTTL(key)) {
+                    return _storage[key];
+                }
+            }
+        },
+
+        deleteKey: function(key) {
+
+            if (!_storage) {
+                return false;
+            }
+
+            if (key in _storage) {
+                delete _storage[key];
+
+                _setTTL(key, 0);
+
+                return _save();
+            }
+
+            return false;
+        },
+
+        setTTL: function(key, ttl) {
+            if (!_storage) {
+                return false;
+            }
+
+            _setTTL(key, ttl);
+
+            return _save();
+        },
+
+        getTTL: function(key) {
+            var ttl;
+
+            if (!_storage) {
+                return false;
+            }
+
+            if (_storage.hasOwnProperty(key)) {
+                if (_storage.__simpleStorage_meta &&
+                    _storage.__simpleStorage_meta.TTL &&
+                    _storage.__simpleStorage_meta.TTL.expire &&
+                    _storage.__simpleStorage_meta.TTL.expire.hasOwnProperty(key)) {
+
+                    ttl = Math.max(_storage.__simpleStorage_meta.TTL.expire[key] - (+new Date()) || 0, 0);
+
+                    return ttl || false;
+                } else {
+                    return Infinity;
+                }
+            }
+
+            return false;
+        },
+
+        flush: function() {
+            if (!_storage) {
+                return false;
+            }
+
+            _storage = {};
+            try {
+                localStorage.removeItem('simpleStorage');
+                return true;
+            } catch (E) {
+                return _formatError(E);
+            }
+        },
+
+        index: function() {
+            if (!_storage) {
+                return false;
+            }
+
+            var index = [],
+                i;
+            for (i in _storage) {
+                if (_storage.hasOwnProperty(i) && i !== '__simpleStorage_meta') {
+                    index.push(i);
+                }
+            }
+            return index;
+        },
+
+        storageSize: function() {
+            return _storage_size;
+        }
+    };
+
+}));

@@ -33,7 +33,7 @@
           </h3>
           <hr>
           <dl class="dl-horizontal">
-            <?php include "../url_parts/project.php"; ?>
+            <?php include "../url_parts/_project.php"; ?>
             <dt>pages</dt>
             <dd>
               <?php echo $I18N->msg( 'url-structure-pages' ); ?>
@@ -41,10 +41,10 @@
               <?php echo $I18N->msg( 'url-structure-onwiki-link', array( 'variables' => array( $fullpageNamee ), 'parsemag' => true ) ); ?>
             </dd>
             <?php $defaultRange = 'latest'; ?>
-            <?php include "../url_parts/date_ranges.php"; ?>
-            <?php include "../url_parts/platform.php"; ?>
-            <?php include "../url_parts/agent.php"; ?>
-            <?php include "../url_parts/autolog.php"; ?>
+            <?php include "../url_parts/_date_ranges.php"; ?>
+            <?php include "../url_parts/_platform.php"; ?>
+            <?php include "../url_parts/_agent.php"; ?>
+            <?php include "../url_parts/_autolog.php"; ?>
           </dl>
         </div>
         <div class="col-lg-12 text-center tm">
