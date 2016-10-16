@@ -85,29 +85,21 @@ const appDependencies = {
 };
 const apps = Object.keys(appDependencies);
 
-/** STYLES */
-gulp.task('styles', apps.map(app => `styles-${app}`));
-
 apps.forEach(app => {
+  const path = app === 'pageviews' ? '' : `${app}/`;
+
+  /** STYLES */
   gulp.task(`styles-${app}`, () => {
     runSequence(`css-sass-${app}`, `css-concat-${app}`);
   });
-});
-
-apps.forEach(app => {
   gulp.task(`css-sass-${app}`, () => {
-    const path = app === 'pageviews' ? '' : `${app}/`;
     return gulp.src(`stylesheets/${path}${app}.scss`)
       .pipe(plugins.sass().on('error', plugins.sass.logError))
       .pipe(plugins.autoprefixer('last 2 version'))
       .pipe(gulp.dest(`public_html/${path}`))
       .pipe(plugins.cssnano());
   });
-});
-
-apps.forEach(app => {
   gulp.task(`css-concat-${app}`, () => {
-    const path = app === 'pageviews' ? '' : `${app}/`;
     const coreCSSDependencies = [
       'vendor/stylesheets/bootstrap.min.css',
       'vendor/stylesheets/toastr.css',
@@ -121,27 +113,17 @@ apps.forEach(app => {
       .pipe(gulp.dest(`public_html/${path}`))
       .pipe(plugins.notify('Styles task complete'));
   });
-});
 
-
-/** SCRIPTS */
-gulp.task('scripts', apps.map(app => `scripts-${app}`));
-
-apps.forEach(app => {
+  /** SCRIPTS */
   gulp.task(`scripts-${app}`, () => {
     runSequence(`js-browserify-${app}`, `js-concat-${app}`);
   });
-});
-
-apps.forEach(app => {
   gulp.task(`js-browserify-${app}`, () => {
-    const path = app === 'pageviews' ? '' : `${app}/`;
     const bundler = browserify(
       `javascripts/${path}${app}.js`, { debug: true }
     ).transform(babel.configure({
       presets: ['es2015']
     }));
-
     const rebundle = () => {
       bundler.bundle()
         .on('error', err => {
@@ -152,14 +134,9 @@ apps.forEach(app => {
         .pipe(buffer())
         .pipe(gulp.dest(`public_html/${path}`));
     };
-
     rebundle();
   });
-});
-
-apps.forEach(app => {
   gulp.task(`js-concat-${app}`, () => {
-    const path = app === 'pageviews' ? '' : `${app}/`;
     const coreJSDependencies = [
       'vendor/javascripts/jquery.min.js',
       'public_html/jquery.i18n.js',
@@ -176,6 +153,30 @@ apps.forEach(app => {
       .pipe(gulp.dest(`public_html/${path}`))
       .pipe(plugins.notify('Scripts task complete'));
   });
+
+  /** VIEWS */
+  gulp.task(`views-${app}`, () => {
+    return gulp.src(`views/${path}*.haml`, {read: false})
+      .pipe(plugins.shell([
+        'php haml.php -d -t php <%= file.path %> <%= target(file.path) %>'
+      ], {
+        templateData: {
+          target: path => {
+            return path.replace('pageviews/views', 'pageviews/public_html')
+              .replace(/\.haml$/, '.php');
+          }
+        }
+      }));
+  });
+
+  /** COMPRESSION */
+  gulp.task(`compress-${app}`, cb => {
+    pump([
+      gulp.src(`public_html/${path}application.js`),
+      plugins.uglify(),
+      gulp.dest(`public_html/${path}`)
+    ], cb);
+  });
 });
 
 /** LINTING */
@@ -190,43 +191,33 @@ gulp.task('scsslint', () => {
     .pipe(plugins.scssLint());
 });
 
-/** COMPRESSION */
+/** MAIN TASKS */
+gulp.task('lint', ['eslint', 'scsslint']);
+gulp.task('styles', apps.map(app => `styles-${app}`));
+gulp.task('scripts', apps.map(app => `scripts-${app}`));
+gulp.task('views', apps.map(app => `haml-${app}`));
 gulp.task('compress', apps.map(app => `compress-${app}`));
 
 apps.forEach(app => {
-  const path = app === 'pageviews' ? '' : `${app}/`;
-  gulp.task(`compress-${app}`, cb => {
-    pump([
-      gulp.src(`public_html/${path}application.js`),
-      plugins.uglify(),
-      gulp.dest(`public_html/${path}`)
-    ], cb);
-  });
+  gulp.task(app, [`styles-${app}`, `scripts-${app}`, `views-${app}`, `compress-${app}`]);
 });
-
-/** MAIN TASKS */
-apps.forEach(app => {
-  gulp.task(app, [`styles-${app}`, `scripts-${app}`]);
-});
-
-gulp.task('lint', ['eslint', 'scsslint']);
 
 gulp.task('watch', () => {
   // compile all apps if shared files are altered
   gulp.watch('stylesheets/_*.scss', ['styles']);
   gulp.watch('javascripts/shared/*.js', ['scripts']);
-
-  // one just for pageviews.scss
-  gulp.watch('stylesheets/pageviews.scss', ['styles-pageviews']);
+  gulp.watch('views/**/_*.haml', ['haml']);
 
   apps.forEach(app => {
-    gulp.watch(`stylesheets/${app}/*.scss`, [`styles-${app}`]);
-    gulp.watch(`javascripts/${app}/*.js`, [`scripts-${app}`]);
+    const path = app === 'pageviews' ? '' : `${app}/`;
+    gulp.watch(`stylesheets/${path}*.scss`, [`styles-${app}`]);
+    gulp.watch(`javascripts/${path}*.js`, [`scripts-${app}`]);
+    gulp.watch(`views/${path}*.haml`, [`haml-${app}`]);
   });
 });
 
 gulp.task('production', () => {
-  runSequence(['styles', 'scripts'], 'compress');
+  runSequence('lint', ['styles', 'scripts', 'views'], 'compress');
 });
 
 gulp.task('default', ['watch']);
