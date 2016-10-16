@@ -8,87 +8,66 @@
   </head>
   <body>
     <div class="container">
-      <div class="col-lg-offset-2">
-        <!-- Header -->
-        <header class="row aqs-row">
-          <div class="col-lg-10 text-center">
-            <h4>
-              <strong><?php echo $I18N->msg( 'topviews-title' ) . ' – ' . $I18N->msg( 'url-structure' ); ?></strong>
-            </h4>
-          </div>
-        </header>
-        <div class="col-lg-10">
+      <header class="col-lg-12 text-center">
+        <h4>
+          <strong>
+            <?php echo $I18N->msg( 'topviews-title' ); ?>
+          </strong>
+          <small class="app-description">
+            <?php echo $I18N->msg( 'url-structure' ); ?>
+          </small>
+        </h4>
+      </header>
+      <main class="col-lg-10 col-lg-offset-1">
+        <div>
           <?php $topviewsLink = "<pre>//tools.wmflabs.org/topviews?project=en.wikipedia.org</pre>"; ?>
           <?php $project = "<code>en.wikipedia.org</code>"; ?>
           <?php $sitematrixLink = "<a href='https://meta.wikimedia.org/w/api.php?action=sitematrix&amp;formatversion=2'>" . strtolower( $I18N->msg( 'project' ) ) . "</a>"; ?>
-          <?php $excldues = "<code>excludes</code>"; ?>
+          <?php $excludes = "<code>excludes</code>"; ?>
           <?php echo $I18N->msg( 'url-structure-topviews-example', array( 'variables' => array( $topviewsLink, $project, $sitematrixLink, $excludes ), 'parsemag' => true ) ); ?>
         </div>
-        <div class="col-lg-10">
+        <div>
           <h3>
             <?php echo $I18N->msg( 'url-structure-parameters' ); ?>
             <small><?php echo $I18N->msg( 'url-structure-parameters-order' ); ?></small>
           </h3>
           <hr>
           <dl class="dl-horizontal">
-            <dt>project</dt>
-            <dd>
-              <?php $defaultProject = "<code>en.wikipedia.org</code> (" . strtolower( $I18N->msg( 'default' ) ) . ") "; ?>
-              <?php echo $I18N->msg( 'url-structure-project', array( 'variables' => array( $defaultProject, $sitematrixLink ), 'parsemag' => true ) ); ?>
-            </dd>
+            <?php include "../../url_parts/project.php"; ?>
             <dt>excludes</dt>
             <dd>
               <?php echo $I18N->msg( 'url-structure-excludes' ); ?>
             </dd>
-            <dt>range</dt>
+            <dt>date</dt>
             <dd>
-              <?php echo $I18N->msg( 'url-structure-special-range', array( 'variables' => array( '<code>start</code>', '<code>end</code>' ), 'parsemag' => true ) ); ?>
+              <?php echo $I18N->msg( 'url-structure-topviews-date', array( 'variables' => array( '<code>date</code>' ), 'parsemag' => true ) ); ?>
               <ul class="special-ranges">
                 <li>
-                  <code>last-week</code>
-                  <?php echo "(" . strtolower( $I18N->msg( 'default' ) ) . ")"; ?>
-                  <?php echo $I18N->msg( 'last-week' ); ?>
-                </li>
-                <li>
-                  <code>this-month</code>
-                  <?php echo $I18N->msg( 'this-month' ); ?>
-                </li>
-                <li>
                   <code>last-month</code>
-                  <?php echo $I18N->msg( 'last-month' ); ?>
+                  <?php echo $I18N->msg( 'last-month' ) . " (" . strtolower( $I18N->msg( 'default' ) ) . ")"; ?>
                 </li>
                 <li>
-                  <code>latest</code>
-                  <?php echo $I18N->msg( 'url-structure-special-range-latest' ); ?>
+                  <code>yesterday</code>
                 </li>
                 <li>
-                  <code>latest-<i>N</i></code>
-                  <?php echo $I18N->msg( 'url-structure-special-range-latest-n' ); ?>
+                  <?php echo $I18N->msg( 'url-structure-topviews-date-month', array( 'variables' => array( '<code>YYYY-MM</code>' ), 'parsemag' => true ) ); ?>
+                </li>
+                <li>
+                  <?php echo $I18N->msg( 'url-structure-topviews-date-day', array( 'variables' => array( '<code>YYYY-MM-DD</code>' ), 'parsemag' => true ) ); ?>
                 </li>
               </ul>
             </dd>
-            <dt>start</dt>
-            <dd>
-              <?php echo $I18N->msg( 'url-structure-start-date', array( 'variables' => array( '<code>YYYY-MM-DD</code>', '<code>end</code>' ), 'parsemag' => true ) ); ?>
-            </dd>
-            <dt>end</dt>
-            <dd>
-              <?php echo $I18N->msg( 'url-structure-end-date', array( 'variables' => array( '<code>YYYY-MM-DD</code>' ), 'parsemag' => true ) ); ?>
-            </dd>
-            <dt>platform</dt>
-            <dd>
-              <?php echo $I18N->msg( 'url-structure-platform', array( 'variables' => array( '<code>all-access</code> (' . strtolower( $I18N->msg( 'default' ) ) . ')', '<code>desktop</code>', '<code>mobile-app</code>', '<code>mobile-web</code>' ), 'parsemag' => true ) ); ?>
-            </dd>
+            <?php include "../../url_parts/platform.php"; ?>
           </dl>
         </div>
-        <div class="col-lg-10 text-center tm">
+        <div class="col-lg-12 text-center tm">
           <a href="/topviews">
             <?php echo $I18N->msg( 'faq-return-to', array( 'variables' => array( $I18N->msg( 'topviews-title' ) ), 'parsemag' => true ) ); ?>
           </a>
         </div>
         <?php $currentApp = "topviews"; ?>
         <?php include "../../_footer.php"; ?>
-      </div>
+      </main>
     </div>
   </body>
 </html>
