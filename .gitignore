@@ -14,5 +14,5 @@ vendor/whichbrowser
 vendor/autoload.php
 vendor/mthaml
 reports/
-doc/PageViews
 *.jar
+jsdocs/gen/

@@ -148,7 +148,7 @@ apps.forEach(app => {
   });
   gulp.task(`js-browserify-${app}`, () => {
     const bundler = browserify(
-      `javascripts/${path}${app}.js`, { debug: true }
+      `javascripts/${path}${app}.js`
     ).transform(babel.configure({
       presets: ['es2015']
     }));
@@ -224,7 +224,7 @@ apps.forEach(app => {
   gulp.task(`views-${path}`, () => {
     return gulp.src(`views/${path}/*.haml`, {read: false})
       .pipe(plugins.shell([
-        'echo Compiling <%= name(file.path) %> to <%= target(file.path) %>',
+        // 'echo Compiling <%= name(file.path) %> to <%= target(file.path) %>',
         'php haml.php -d -t php <%= file.path %> <%= target(file.path) %>'
       ], {
         templateData: {
@@ -250,6 +250,13 @@ gulp.task('eslint', () => {
 gulp.task('scsslint', () => {
   return gulp.src('stylesheets/**/*.scss')
     .pipe(plugins.scssLint());
+});
+
+/** JSDOC */
+gulp.task('jsdoc', cb => {
+  const config = require('./jsdocs/jsdoc.json');
+  gulp.src(['README.md', 'javascripts/**/*.js'], {read: false})
+    .pipe(plugins.jsdoc3(config, cb));
 });
 
 /** MAIN TASKS */
@@ -279,7 +286,7 @@ gulp.task('watch', () => {
 });
 
 gulp.task('production', () => {
-  runSequence('lint', ['styles', 'scripts', 'views'], 'compress');
+  runSequence('lint', ['styles', 'scripts', 'views'], ['compress', 'jsdoc']);
 });
 
 gulp.task('default', ['watch']);
