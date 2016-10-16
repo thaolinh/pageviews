@@ -101,12 +101,13 @@ apps.forEach(app => {
     return gulp.src(`stylesheets/${path}${app}.scss`)
       .pipe(plugins.sass().on('error', plugins.sass.logError))
       .pipe(plugins.autoprefixer('last 2 version'))
+      .pipe(plugins.rename('application.css'))
       .pipe(gulp.dest(`public_html/${path}`));
   });
   gulp.task(`css-concat-${app}`, () => {
     return gulp.src(coreCSSDependencies
         .concat(appDependencies[app].css)
-        .concat([`public_html/${path}${app}.css`])
+        .concat([`public_html/${path}application.css`])
       )
       .pipe(plugins.concat('application.css'))
       .pipe(gulp.dest(`public_html/${path}`))
@@ -121,11 +122,12 @@ apps.forEach(app => {
       return gulp.src(`stylesheets/${path}${helpPage}.scss`)
         .pipe(plugins.sass().on('error', plugins.sass.logError))
         .pipe(plugins.autoprefixer('last 2 version'))
+        .pipe(plugins.rename('application.css'))
         .pipe(gulp.dest(`public_html/${path}${helpPage}`));
     });
     gulp.task(`css-concat-${app}-${helpPage}`, () => {
       return gulp.src(coreCSSDependencies
-          .concat([`public_html/${path}${helpPage}/${helpPage}.css`])
+          .concat([`public_html/${path}${helpPage}/application.css`])
         )
         .pipe(plugins.concat('application.css'))
         .pipe(gulp.dest(`public_html/${path}${helpPage}`));
@@ -158,6 +160,7 @@ apps.forEach(app => {
         })
         .pipe(source(`${app}.js`))
         .pipe(buffer())
+        .pipe(plugins.rename('application.js'))
         .pipe(gulp.dest(`public_html/${path}`));
     };
     rebundle();
@@ -165,7 +168,7 @@ apps.forEach(app => {
   gulp.task(`js-concat-${app}`, () => {
     return gulp.src(coreJSDependencies
         .concat(appDependencies[app].js)
-        .concat([`public_html/${path}${app}.js`])
+        .concat([`public_html/${path}application.js`])
       )
       .pipe(plugins.concat('application.js'))
       .pipe(gulp.dest(`public_html/${path}`));
